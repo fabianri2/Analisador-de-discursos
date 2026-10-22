@@ -1,0 +1,20 @@
+# Stack del Analizador Agéntico de Discursos
+# Instalación:  pip install -r requirements.txt
+
+# Análisis numérico y clasificador
+numpy>=2.0
+pandas>=2.2
+scikit-learn>=1.5
+joblib>=1.4
+
+# Orquestación del grafo multiagente
+langgraph>=0.2
+
+# NLP ligero (sentimiento)
+textblob>=0.18
+
+# Ingesta: ffmpeg se resuelve desde el PATH o desde este wheel
+imageio-ffmpeg>=0.5
+
+# Transcripción local (opcional si se usan subtítulos .srt/.vtt)
+faster-whisper>=1.1

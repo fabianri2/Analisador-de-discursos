@@ -1,0 +1,5 @@
+video,speaker,label
+videos/discurso.mp4,Presidente_A,truth
+videos/discurso.mp4,Presidente_A,deviation
+videos/discurso.mp4,Presidente_B,truth
+videos/discurso.mp4,Presidente_B,deviation
