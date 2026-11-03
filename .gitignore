@@ -28,6 +28,9 @@ videos/*.webm
 resultados_taller/
 resultados_plan/
 
+# Documentación local (se sube a Notion, no al repositorio)
+/docs/
+
 # OS / Editor files
 .vscode/
 .idea/

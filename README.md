@@ -42,6 +42,19 @@ Asegúrate de tener activo tu entorno virtual (`.venv`) en la raíz del proyecto
 python main.py analyze videos/discurso.mp4 --output results --speaker "NombrePresidente"
 ```
 
+### 1.b Ejecutar con la arquitectura Plan-and-Execute:
+```bash
+python main.py analyze videos/discurso.mp4 --arquitectura plan-and-execute --output results
+```
+El planner descompone el discurso en pasos de verificación, el executor los resuelve contra los benchmarks documentales y el replanner reformula los pasos sin evidencia. Las métricas del plan (pasos, cobertura, replanificaciones) quedan en `result.json` y en una sección del reporte HTML.
+
+### 1.c Pruebas y evaluación:
+```bash
+python -m unittest discover -s tests -v          # pruebas unitarias
+python scripts/evaluar_plan_and_execute.py       # métricas locales del plan
+python scripts/evaluar_plan_and_execute.py --langsmith   # experimento en LangSmith (opcional)
+```
+
 ### 2. Optimizar y Entrenar las Fronteras de Decisión del Clasificador (Machine Learning):
 ```bash
 python main.py train datasets/etiquetas_factores.csv --model models/classifier.joblib
