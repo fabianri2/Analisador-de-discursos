@@ -211,6 +211,28 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
             f'<td>{finding_cell}</td><td>{escaped_text}</td></tr>'
         )
 
+    # Componente: plan de verificación (solo cuando se usa la arquitectura Plan-and-Execute)
+    plan_metrics = state.get("plan_metrics") if isinstance(state, dict) else None
+    plan_section_html = ""
+    if plan_metrics:
+        plan_rows_html = "".join(
+            f'<tr><td>{step.get("step")}</td>'
+            f'<td>{html.escape(str(step.get("claim", ""))[:160])}</td>'
+            f'<td>{html.escape(str(step.get("resolution") or step.get("status")))}</td>'
+            f'<td>{html.escape(str(step.get("source") or "—"))}</td></tr>'
+            for step in state.get("plan", [])
+        )
+        coverage = float(plan_metrics.get("coverage", 0.0)) * 100
+        plan_section_html = f"""<section class="card">
+    <h2>Plan de verificación (Plan-and-Execute)</h2>
+    <p class="mut" style="margin:0 0 6px">El planner descompuso el discurso en {plan_metrics.get('planned_steps', 0)} pasos;
+    se resolvieron {plan_metrics.get('resolved_steps', 0)} con evidencia documental
+    ({plan_metrics.get('replanned_steps', 0)} por replanificación), cobertura {coverage:.0f}%.</p>
+    <table><thead><tr><th>#</th><th>Afirmación</th><th>Resultado</th><th>Fuente</th></tr></thead>
+    <tbody>{plan_rows_html}</tbody></table>
+</section>
+"""
+
     execution_logs = "".join(f"<li>{html.escape(log)}</li>" for log in state.get("logs", [])) if isinstance(state, dict) else ""
     execution_errors = "".join(f"<li>{html.escape(err)}</li>" for err in state.get("errors", [])) if isinstance(state, dict) else ""
     
@@ -300,6 +322,7 @@ details summary{{cursor:pointer;font-weight:600}}
     </div>
 </section>
 
+{plan_section_html}
 <section class="card">
     <h2>Segmentos con Discrepancias Críticas (Cruce MEF/BCRP)</h2>
     <p class="mut" style="margin:0 0 6px">Se muestra un solo hallazgo por tema regulatorio: si la misma promesa se repite en varios segmentos, se agrupa en la primera mención.</p>
@@ -345,6 +368,9 @@ def report_generator_agent(state: Any) -> dict:
                      for s, f in zip(state.get("segments", []), verdict_data.get("by_segment", []))],
         "logs": state.get("logs", []),
         "errors": state.get("errors", []),
+        "architecture": (state.get("plan_metrics") or {}).get("architecture", "pipeline"),
+        "plan_metrics": state.get("plan_metrics"),
+        "plan": state.get("plan", []),
         "methodology_warning": METRIC_WARNING,
     }
     

@@ -47,11 +47,22 @@ def cmd_analyze(args: argparse.Namespace):
             config=system_config, 
             output_dir=args.output, 
             speaker=args.speaker, 
-            verbose=not args.silent
+            verbose=not args.silent,
+            architecture=getattr(args, "arquitectura", "pipeline"),
         )
         
         verdict = state_result.get("verdict", {})
         opacity_index = verdict.get("opacity_index", 0.0)
+
+        plan_metrics = state_result.get("plan_metrics")
+        if plan_metrics:
+            print(
+                f"Arquitectura: {plan_metrics['architecture']} · "
+                f"Pasos: {plan_metrics['planned_steps']} · "
+                f"Resueltos: {plan_metrics['resolved_steps']} · "
+                f"Replanificados: {plan_metrics['replanned_steps']} · "
+                f"Cobertura: {plan_metrics['coverage'] * 100:.0f}%"
+            )
         
         # Impresiones en consola formateadas para la defensa del MVP
         print(f"\nResultado  : {verdict.get('label', 'N/A')}")  # Muestra: 'truth' o 'deviation'
@@ -97,6 +108,12 @@ def main(argv: list[str] | None = None) -> int:
     analyze_parser.add_argument("--speaker")
     analyze_parser.add_argument("--output", default="results")
     analyze_parser.add_argument("--silent", action="store_true")
+    analyze_parser.add_argument(
+        "--arquitectura",
+        choices=["pipeline", "plan-and-execute"],
+        default="pipeline",
+        help="Arquitectura agéntica de verificación factual (por defecto: pipeline)",
+    )
     analyze_parser.set_defaults(func=cmd_analyze)
 
     # Command mapping: train

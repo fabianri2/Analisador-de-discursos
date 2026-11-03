@@ -24,8 +24,9 @@ videos/*.webm
 # Caché local del modelo Whisper (se descarga en la primera transcripción)
 .hf_cache/
 
-# Salidas generadas al probar los videos de taller
+# Salidas generadas en las pruebas locales
 resultados_taller/
+resultados_plan/
 
 # OS / Editor files
 .vscode/

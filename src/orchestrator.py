@@ -27,6 +27,7 @@ from .agentes.promise_agent import promise_extractor_agent
 from .agentes.report_agent import report_generator_agent
 from .agentes.sentiment_agent import sentiment_agent
 from .agentes.transcription_agent import transcription_agent
+from .arquitecturas.plan_and_execute import plan_and_execute_agent
 from .state import SpeechAnalysisState
 
 AGENTS: Dict[str, Callable] = {
@@ -37,11 +38,18 @@ AGENTS: Dict[str, Callable] = {
     "promise": promise_extractor_agent,
     "syntactic": text_opacity_analyst_agent,
     "factual": factual_alignment_agent,
+    "plan_execute": plan_and_execute_agent,
     "judge": consolidation_judge_agent,
     "report": report_generator_agent,
 }
 ANALYSIS_BRANCHES = ("sentiment", "linguistic", "promise", "syntactic")
 CRITICAL_AGENTS = {"ingestion", "transcription", "judge", "report"}
+SUPPORTED_ARCHITECTURES = ("pipeline", "plan-and-execute")
+
+
+def _verification_node(architecture: str) -> str:
+    """Devuelve el nodo de verificación factual según la arquitectura elegida."""
+    return "plan_execute" if architecture == "plan-and-execute" else "factual"
 
 
 def _wrap_node(name: str, fn: Callable, verbose: bool) -> Callable:
@@ -67,10 +75,11 @@ def _wrap_node(name: str, fn: Callable, verbose: bool) -> Callable:
     return node
 
 
-def build_workflow_graph(verbose: bool = True):
+def build_workflow_graph(verbose: bool = True, architecture: str = "pipeline"):
     """Compiles the multi-agent execution architecture using LangGraph StateGraph."""
     from langgraph.graph import END, START, StateGraph  # type: ignore
 
+    verification = _verification_node(architecture)
     graph = StateGraph(SpeechAnalysisState)
     
     for name, fn in AGENTS.items():
@@ -82,17 +91,21 @@ def build_workflow_graph(verbose: bool = True):
     for branch in ANALYSIS_BRANCHES:
         graph.add_edge("transcription", branch)
         
-    graph.add_edge(list(ANALYSIS_BRANCHES), "factual")  
-    graph.add_edge("factual", "judge")
+    graph.add_edge(list(ANALYSIS_BRANCHES), verification)
+    graph.add_edge(verification, "judge")
     graph.add_edge("judge", "report")
     graph.add_edge("report", END)
     
     return graph.compile()
 
 
-def _run_sequential_fallback(state: SpeechAnalysisState, verbose: bool) -> SpeechAnalysisState:
+def _run_sequential_fallback(state: SpeechAnalysisState, verbose: bool,
+                             architecture: str = "pipeline") -> SpeechAnalysisState:
     """Local fallback architecture execution if LangGraph is missing."""
+    skipped = {"factual", "plan_execute"} - {_verification_node(architecture)}
     for name, fn in AGENTS.items():
+        if name in skipped:
+            continue
         output = _wrap_node(name, fn, verbose)(state)
         for key, val in output.items():
             if key in ("logs", "errors"):
@@ -103,8 +116,11 @@ def _run_sequential_fallback(state: SpeechAnalysisState, verbose: bool) -> Speec
 
 
 def analyze_video_pipeline(video_path: str, config: Dict, output_dir: str = "results",
-                           speaker: str | None = None, verbose: bool = True) -> SpeechAnalysisState:
+                           speaker: str | None = None, verbose: bool = True,
+                           architecture: str = "pipeline") -> SpeechAnalysisState:
     """Main execution portal for analyzing speech documents and video assets."""
+    if architecture not in SUPPORTED_ARCHITECTURES:
+        raise ValueError(f"Arquitectura no soportada: {architecture}. Use una de {SUPPORTED_ARCHITECTURES}.")
     working_dir = Path(output_dir) / Path(video_path).stem
     
     # Inicialización del diccionario con la clave exacta 'video' requerida por ingestion_agent.py
@@ -118,10 +134,10 @@ def analyze_video_pipeline(video_path: str, config: Dict, output_dir: str = "res
     }
     
     try:
-        graph = build_workflow_graph(verbose)
+        graph = build_workflow_graph(verbose, architecture)
     except ImportError:
         if verbose:
             print("  (LangGraph no detectado en el entorno: ejecutando modo de respaldo secuencial)")
-        return _run_sequential_fallback(state, verbose)
+        return _run_sequential_fallback(state, verbose, architecture)
         
     return graph.invoke(state)
