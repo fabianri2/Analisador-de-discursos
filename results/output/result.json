@@ -1,0 +1,11 @@
+{
+  "video": "videos/discurso.mp4",
+  "speaker": "Desconocido",
+  "duration_seconds": 72.0,
+  "transcription_source": "fallback",
+  "verdict": {},
+  "segments": [],
+  "logs": [],
+  "errors": [],
+  "methodology_warning": "Este reporte es una auditoría algorítmica de consistencia factual y presupuestal. Un índice de opacidad o desviación elevado indica que las afirmaciones macroeconómicas, jurídicas o sociales del ejecutivo presentan discrepancias estadísticas frente a las memorias anuales del BCRP y las partidas presupuestales de ejecución del MEF. Los resultados deben utilizarse como apoyo para la fiscalización documental, no como un dictamen judicial definitivo."
+}

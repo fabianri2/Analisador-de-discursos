@@ -1,0 +1,47 @@
+# Virtual Environments
+.venv/
+venv/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+
+# Audio temporary files
+*.wav
+results/*/*.wav
+
+# Corpus local de videos de taller (archivos de varios GB, no versionar)
+VIDEOS_TALLER/
+videos/*.mp4
+videos/*.mkv
+videos/*.mov
+videos/*.avi
+videos/*.webm
+
+# Scratch local del entorno de análisis
+.tmp/
+
+# Caché local del modelo Whisper (se descarga en la primera transcripción)
+.hf_cache/
+
+# Salidas generadas en las pruebas locales
+resultados_taller/
+resultados_plan/
+
+# Documentación local (se sube a Notion, no al repositorio)
+/docs/
+
+# OS / Editor files
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Ejecutables binarios de multimedia (Fabián Core)
+*.exe
+ffmpeg
+ffplay
+ffprobe
+
+# Base de datos vectorial local
+data_storage/
