@@ -36,10 +36,15 @@ class SpeechAnalysisState(TypedDict, total=False):
     extracted_promises: List[Dict[str, Any]]
     factual_rag_metrics: Dict[str, Any]
 
-    # Arquitectura Plan-and-Execute
+    # Arquitecturas Alternativas
     architecture: str
     plan: List[Dict[str, Any]]
     plan_metrics: Dict[str, Any]
+    
+    # Arquitectura Multi-Agente con Supervisor (Clean Architecture)
+    supervisor_trace: List[Dict[str, Any]]
+    supervisor_metrics: Dict[str, Any]
+    next_worker: str
     
     # Auditoría, veredicto y reporte
     audit_results: Dict[str, Any]

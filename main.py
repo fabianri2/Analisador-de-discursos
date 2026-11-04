@@ -63,6 +63,15 @@ def cmd_analyze(args: argparse.Namespace):
                 f"Replanificados: {plan_metrics['replanned_steps']} · "
                 f"Cobertura: {plan_metrics['coverage'] * 100:.0f}%"
             )
+
+        supervisor_metrics = state_result.get("supervisor_metrics")
+        if supervisor_metrics:
+            print(
+                f"Arquitectura: Supervisor Multi-Agente (Clean Arch) · "
+                f"Ciclos de control: {supervisor_metrics['total_cycles']} · "
+                f"Especialistas convocados: {len(supervisor_metrics['workers_called'])} · "
+                f"Alertas críticas gestionadas: {supervisor_metrics['critical_discrepancies_detected']}"
+            )
         
         # Impresiones en consola formateadas para la defensa del MVP
         print(f"\nResultado  : {verdict.get('label', 'N/A')}")  # Muestra: 'truth' o 'deviation'
@@ -110,9 +119,9 @@ def main(argv: list[str] | None = None) -> int:
     analyze_parser.add_argument("--silent", action="store_true")
     analyze_parser.add_argument(
         "--arquitectura",
-        choices=["pipeline", "plan-and-execute"],
+        choices=["pipeline", "plan-and-execute", "supervisor"],
         default="pipeline",
-        help="Arquitectura agéntica de verificación factual (por defecto: pipeline)",
+        help="Arquitectura agéntica de verificación factual (pipeline, plan-and-execute o supervisor)",
     )
     analyze_parser.set_defaults(func=cmd_analyze)
 

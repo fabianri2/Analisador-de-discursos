@@ -28,6 +28,7 @@ from .agentes.report_agent import report_generator_agent
 from .agentes.sentiment_agent import sentiment_agent
 from .agentes.transcription_agent import transcription_agent
 from .arquitecturas.plan_and_execute import plan_and_execute_agent
+from .arquitecturas.supervisor import build_supervisor_graph, run_supervisor_sequential_fallback
 from .state import SpeechAnalysisState
 
 AGENTS: Dict[str, Callable] = {
@@ -44,7 +45,7 @@ AGENTS: Dict[str, Callable] = {
 }
 ANALYSIS_BRANCHES = ("sentiment", "linguistic", "promise", "syntactic")
 CRITICAL_AGENTS = {"ingestion", "transcription", "judge", "report"}
-SUPPORTED_ARCHITECTURES = ("pipeline", "plan-and-execute")
+SUPPORTED_ARCHITECTURES = ("pipeline", "plan-and-execute", "supervisor")
 
 
 def _verification_node(architecture: str) -> str:
@@ -77,6 +78,9 @@ def _wrap_node(name: str, fn: Callable, verbose: bool) -> Callable:
 
 def build_workflow_graph(verbose: bool = True, architecture: str = "pipeline"):
     """Compiles the multi-agent execution architecture using LangGraph StateGraph."""
+    if architecture == "supervisor":
+        return build_supervisor_graph(verbose=verbose)
+
     from langgraph.graph import END, START, StateGraph  # type: ignore
 
     verification = _verification_node(architecture)
@@ -102,6 +106,9 @@ def build_workflow_graph(verbose: bool = True, architecture: str = "pipeline"):
 def _run_sequential_fallback(state: SpeechAnalysisState, verbose: bool,
                              architecture: str = "pipeline") -> SpeechAnalysisState:
     """Local fallback architecture execution if LangGraph is missing."""
+    if architecture == "supervisor":
+        return run_supervisor_sequential_fallback(state, verbose=verbose)
+
     skipped = {"factual", "plan_execute"} - {_verification_node(architecture)}
     for name, fn in AGENTS.items():
         if name in skipped:
