@@ -1,0 +1,893 @@
+{
+  "video": "videos\\Discurso Dina Boluarte 30 de enero de 2023.mp4",
+  "speaker": "Dina Boluarte",
+  "duration_seconds": 432.15,
+  "transcription_source": "subtitles Discurso Dina Boluarte 30 de enero de 2023.srt",
+  "verdict": {
+    "method": "Algoritmo Heurístico Agéntico Multi-Modal",
+    "opacity_index": 47.4,
+    "label": "neutral",
+    "deviation_probability": 0.474,
+    "modalities": [
+      "sentiment",
+      "linguistic",
+      "syntactic",
+      "promise_extraction",
+      "factual_rag"
+    ],
+    "critical_segments": [
+      12,
+      15,
+      1
+    ],
+    "critical_findings": [
+      {
+        "segment_id": 12,
+        "topic": "Cronograma Electoral y Mandato Presidencial",
+        "topic_key": "cronograma_electoral_y_mandato_presidencial",
+        "audit_note": "La promesa categórica de elecciones generales en 2023 y recorte de mandato no se concretó formalmente en el año fiscal auditado.",
+        "source": "JNE / ONPE / Diario Oficial El Peruano (Registro de Comicios 2023)",
+        "factual_score": 90.0,
+        "index": 62.6,
+        "start": 105.05,
+        "end": 113.97,
+        "mentions": 5
+      },
+      {
+        "segment_id": 15,
+        "topic": "Reforma Constitucional",
+        "topic_key": "reforma_constitucional",
+        "audit_note": "La iniciativa de reforma total de la carta de 1993 no superó las comisiones dictaminadoras ni fue promulgada.",
+        "source": "Archivo Digital de la Legislatura del Congreso de la República (2023)",
+        "factual_score": 78.0,
+        "index": 57.8,
+        "start": 129.65,
+        "end": 139.13,
+        "mentions": 8
+      },
+      {
+        "segment_id": 1,
+        "topic": "Seguridad y Paz Social",
+        "topic_key": "seguridad_y_paz_social",
+        "audit_note": "Los registros oficiales constataron 49 civiles fallecidos en enfrentamientos y paralización de corredores viales clave.",
+        "source": "Defensoría del Pueblo (Reporte de Conflictos Sociales Enero-Marzo 2023)",
+        "factual_score": 72.0,
+        "index": 45.6,
+        "start": 15.73,
+        "end": 21.09,
+        "mentions": 3
+      }
+    ],
+    "global_vector": {
+      "sentiment_mean": 12.941,
+      "sentiment_p90": 10.0,
+      "linguistic_mean": 22.286,
+      "linguistic_p90": 20.0,
+      "syntactic_mean": 61.532,
+      "syntactic_p90": 84.3,
+      "promise_extraction_mean": 17.059,
+      "promise_extraction_p90": 35.0,
+      "factual_rag_mean": 22.249,
+      "factual_rag_p90": 40.5,
+      "sentiment__mean_polarity": 0.061,
+      "sentiment__polarity_deviation": 0.359,
+      "sentiment__volatility": 0.259,
+      "sentiment__positive_ratio": 0.157,
+      "sentiment__negative_ratio": 0.078,
+      "linguistic__first_person": 0.14,
+      "linguistic__exclusive_words": 0.253,
+      "linguistic__negations": 1.01,
+      "linguistic__hedges": 0.123,
+      "linguistic__truth_assertives": 0.0,
+      "linguistic__negative_emotion": 0.273,
+      "linguistic__words_per_second": 1.885,
+      "linguistic__total_speech_words": 749.0,
+      "syntactic__mean_opacity": 61.532,
+      "syntactic__max_opacity": 94.8,
+      "promise_extraction__total_promises": 25.0,
+      "promise_extraction__high_commitment_segments": 4.0,
+      "factual_rag__mean_factual_discrepancy": 0.222,
+      "factual_rag__evaluated_segments_count": 51.0,
+      "factual_rag__critical_segments_count": 3.0,
+      "factual_rag__unique_topics_count": 3.0,
+      "factual_rag__critical_topics_count": 3.0,
+      "factual_rag__repeated_mentions_count": 13.0,
+      "mean_opacity_index": 27.677
+    },
+    "confidence": 0.8,
+    "model_metrics": {
+      "validation": "por orador (GroupKFold)",
+      "n": 4,
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.667
+    }
+  },
+  "segments": [
+    {
+      "id": 0,
+      "start": 6.93,
+      "end": 15.73,
+      "text": "queridos compatriotas. En los últimos días, como todos lo hemos apreciado, el país se ha",
+      "index": 17.52,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 47.1,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 1,
+      "start": 15.73,
+      "end": 21.09,
+      "text": "visto envuelto en una espiral de violencia que ha perjudicado a todo el Perú, pero sobre",
+      "index": 45.593,
+      "families": {
+        "factual_rag": 72.0,
+        "syntactic": 45.9,
+        "promise_extraction": 0.0,
+        "linguistic": 51.25,
+        "sentiment": 47.5
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 2,
+      "start": 21.09,
+      "end": 29.45,
+      "text": "todo a los más desfaborecidos. Pudimos apreciar con indignación que nuestra Policía Nacional",
+      "index": 28.191,
+      "families": {
+        "factual_rag": 32.4,
+        "syntactic": 69.854,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 3,
+      "start": 29.45,
+      "end": 36.13,
+      "text": "ha sido agredida a Manzalba por un grupo organizado de individuos que quieren sembrar el cao",
+      "index": 22.905,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 45.9,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 47.5
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 4,
+      "start": 36.13,
+      "end": 45.73,
+      "text": "celudio entre los peruanos. A esa misma hora, el Congreso de la República de Batía el adelanto",
+      "index": 18.572,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 52.359,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 5,
+      "start": 45.73,
+      "end": 54.69,
+      "text": "de elecciones al 2023 y, como ya sabemos, a esta hora un debate estere que no se ha llegado",
+      "index": 18.34,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 51.2,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 6,
+      "start": 54.69,
+      "end": 64.01,
+      "text": "a nada concreto, excepto la reconsideración que mañana va a debatirse y que esperamos merezca",
+      "index": 22.56,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 72.3,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 7,
+      "start": 64.01,
+      "end": 71.77,
+      "text": "a una segunda reflexión, dada la gravedad de la situación. Reitero que este vacío es inaceptable",
+      "index": 26.055,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 61.65,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 47.5
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 8,
+      "start": 71.77,
+      "end": 81.33,
+      "text": "para el Perú. Las autoridades que representamos al Estado tenemos el deber de proteger a todas",
+      "index": 18.855,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 53.775,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 9,
+      "start": 81.33,
+      "end": 89.41,
+      "text": "y todos los peruanos, salvaguardando la seguridad del país y garantizando la tranquilidad y la",
+      "index": 26.2,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 55.5,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 10,
+      "start": 89.41,
+      "end": 95.41,
+      "text": "paso social de nuestro querido Perú y esta responsabilidad no lo exceptúa al Congreso",
+      "index": 17.82,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 48.6,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 11,
+      "start": 95.41,
+      "end": 105.05,
+      "text": "de la República, hermanas y hermanos. Depende única y exclusivamente del Congreso de la República,",
+      "index": 24.24,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 80.7,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 12,
+      "start": 105.05,
+      "end": 113.97,
+      "text": "la responsabilidad de aprobar el adelanto de elecciones para este año 2023. Por ello anuncio que",
+      "index": 62.6,
+      "families": {
+        "factual_rag": 90.0,
+        "syntactic": 55.5,
+        "promise_extraction": 100.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 13,
+      "start": 113.97,
+      "end": 119.53,
+      "text": "de no prosperar el consenso en el Congreso el día de mañana para debatir el adelanto",
+      "index": 20.43,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 61.65,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 14,
+      "start": 119.53,
+      "end": 129.65,
+      "text": "de elecciones al 2023, el ejecutivo estará presentando inmediatamente dos iniciativas legislativas",
+      "index": 33.116,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 90.082,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 15,
+      "start": 129.65,
+      "end": 139.13,
+      "text": "con carácter urgencia. La primera debatir una reforma constitucional para que las elecciones",
+      "index": 57.809,
+      "families": {
+        "factual_rag": 78.0,
+        "syntactic": 79.546,
+        "promise_extraction": 70.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 16,
+      "start": 139.13,
+      "end": 148.37,
+      "text": "generales sean indefectiblemente este año 2023. La primera vuelta en octubre y la segunda",
+      "index": 27.132,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 60.162,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 17,
+      "start": 148.37,
+      "end": 156.49,
+      "text": "de ser el caso en diciembre. Estas cuestiones implican, como es evidente, una reforma constitucional",
+      "index": 34.81,
+      "families": {
+        "factual_rag": 35.1,
+        "syntactic": 63.9,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 18,
+      "start": 156.49,
+      "end": 164.85,
+      "text": "que incorpore disposiciones transitorias especiales a efecto de regular la situación de excepción",
+      "index": 25.948,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 89.238,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 19,
+      "start": 164.93,
+      "end": 173.93,
+      "text": "descrita. La propuesta aborda fundamentalmente los siguientes supuestos. Se establece el recorto",
+      "index": 27.06,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 94.8,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 20,
+      "start": 173.93,
+      "end": 180.53,
+      "text": "del periodo presidencial de los congresistas de la República y de los representantes ante el",
+      "index": 19.2,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 55.5,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 21,
+      "start": 180.53,
+      "end": 188.73,
+      "text": "Parlamento Andino, elegidos en las elecciones generales del 2021. Se dispone además que",
+      "index": 47.51,
+      "families": {
+        "factual_rag": 40.5,
+        "syntactic": 84.3,
+        "promise_extraction": 70.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 22,
+      "start": 188.73,
+      "end": 194.69,
+      "text": "el presidente de la República convoque a elecciones generales para el segundo domingo",
+      "index": 39.559,
+      "families": {
+        "factual_rag": 40.5,
+        "syntactic": 79.546,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 23,
+      "start": 194.69,
+      "end": 203.37,
+      "text": "de octubre de este año 2023. El Congreso de la República puede aprobar otras leyes necesarias",
+      "index": 26.2,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 55.5,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 24,
+      "start": 203.37,
+      "end": 214.13,
+      "text": "para la realización de las elecciones generales del 2023. Hasta el 28 de febrero de este año,",
+      "index": 33.07,
+      "families": {
+        "factual_rag": 40.5,
+        "syntactic": 47.1,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 25,
+      "start": 214.13,
+      "end": 220.73,
+      "text": "no siendo de aplicación el plazo dispuesto en el artículo 4 de la ley orgánica de lecciones",
+      "index": 18.855,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 53.775,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 26,
+      "start": 220.73,
+      "end": 231.25,
+      "text": "estimados compatriotas. Esta propuesta normativa responde a la imperiosa necesidad de mejorar los",
+      "index": 25.948,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 89.238,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 27,
+      "start": 231.25,
+      "end": 239.13,
+      "text": "niveles de legitimidad democrática de la representación política del país, situación que va a permitir",
+      "index": 22.56,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 72.3,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 28,
+      "start": 239.13,
+      "end": 247.05,
+      "text": "a la población canalizar institucionalmente y no por la violencia sus principales demandas",
+      "index": 39.585,
+      "families": {
+        "factual_rag": 32.4,
+        "syntactic": 69.854,
+        "promise_extraction": 0.0,
+        "linguistic": 58.462,
+        "sentiment": 47.5
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 29,
+      "start": 247.05,
+      "end": 254.29,
+      "text": "a la agenda política nacional. La segunda propuesta es un proyecto de ley que está destinado",
+      "index": 29.005,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 69.525,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 30,
+      "start": 254.29,
+      "end": 260.93,
+      "text": "a sanjar de una vez por todas el debate sobre la reforma de la Constitución tema que es permanentemente",
+      "index": 16.825,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 43.626,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 31,
+      "start": 260.93,
+      "end": 267.09,
+      "text": "utilizado por algunas fuerzas políticas para menos cavar cualquier salida democrática la",
+      "index": 20.76,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 63.3,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 32,
+      "start": 267.09,
+      "end": 275.49,
+      "text": "actual situación. Concretamente me refiero de proponer que el próximo Congreso elegido le encarga",
+      "index": 32.02,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 84.6,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 33,
+      "start": 275.49,
+      "end": 283.49,
+      "text": "la Comisión de Constitución la Reforma Total de la Constitución de 1993. Este proyecto de ley",
+      "index": 40.13,
+      "families": {
+        "factual_rag": 35.1,
+        "syntactic": 55.5,
+        "promise_extraction": 70.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 34,
+      "start": 283.49,
+      "end": 288.97,
+      "text": "calza perfectamente en la expectativa que tiene el otro sector del Congreso que también",
+      "index": 16.02,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 39.6,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 35,
+      "start": 288.97,
+      "end": 296.57,
+      "text": "quiere hacer reformas políticas mediante una asamblea constituyente. Como ya lo dije, ya no habría",
+      "index": 33.13,
+      "families": {
+        "factual_rag": 35.1,
+        "syntactic": 55.5,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 36,
+      "start": 296.57,
+      "end": 305.21,
+      "text": "más pretextos para que esto se ve este adelanto de elecciones este 2023. ¿Qué proponemos?",
+      "index": 33.37,
+      "families": {
+        "factual_rag": 40.5,
+        "syntactic": 48.6,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 37,
+      "start": 305.21,
+      "end": 315.13,
+      "text": "En primer lugar, que el proceso de reforma total de la Constitución de 1993 tiene su vaso legal",
+      "index": 29.537,
+      "families": {
+        "factual_rag": 35.1,
+        "syntactic": 37.535,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 38,
+      "start": 315.13,
+      "end": 325.01,
+      "text": "en la ley que está vigente, la 27.600 publicada el 16 de diciembre del 2001 y que dice esta ley.",
+      "index": 15.607,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 37.535,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 39,
+      "start": 326.57,
+      "end": 332.81,
+      "text": "Que el Congreso proponga un proyecto de reforma total de la Constitución tomando en cuenta la",
+      "index": 34.36,
+      "families": {
+        "factual_rag": 35.1,
+        "syntactic": 61.65,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 40,
+      "start": 332.81,
+      "end": 341.89,
+      "text": "Constitución histórica del Perú. Tras su aprobación, por el Congreso será sometida referéndum para",
+      "index": 28.42,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 66.6,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 41,
+      "start": 341.89,
+      "end": 349.29,
+      "text": "que el pueblo decida si la reforma total se aprueba o no. La propuesta del ejecutivo con esta iniciativa",
+      "index": 19.478,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 56.889,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 42,
+      "start": 349.29,
+      "end": 356.85,
+      "text": "legislativa busca una amplia participación de la ciudadanía en especial de aquellos sectores",
+      "index": 22.071,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 69.854,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 43,
+      "start": 356.85,
+      "end": 364.37,
+      "text": "más excluidos de la sociedad. De este modo, todas las personas e instituciones podrán presentar",
+      "index": 19.2,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 55.5,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 44,
+      "start": 364.37,
+      "end": 371.77,
+      "text": "sus anteproyectos o sus aportes al Congreso de la República. Además, la Comisión de Constitución",
+      "index": 29.49,
+      "families": {
+        "factual_rag": 35.1,
+        "syntactic": 72.3,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 45,
+      "start": 371.89,
+      "end": 378.37,
+      "text": "deberá promover la participación activa de la población en el debate para el diseño y",
+      "index": 22.56,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 72.3,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 46,
+      "start": 378.37,
+      "end": 386.93,
+      "text": "aprobación de la reforma constitucional. Señoras y señores congresistas, tienen que entender",
+      "index": 38.89,
+      "families": {
+        "factual_rag": 35.1,
+        "syntactic": 84.3,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 47,
+      "start": 386.93,
+      "end": 394.61,
+      "text": "su responsabilidad histórica. El día de mañana tienen la oportunidad de ganarse la confianza",
+      "index": 21.42,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 66.6,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 48,
+      "start": 394.61,
+      "end": 404.65,
+      "text": "del país, atendiendo esta demanda tan esperada por el pueblo peruano. Voten por el Perú, a favor del",
+      "index": 16.94,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 44.2,
+        "promise_extraction": 0.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 49,
+      "start": 404.65,
+      "end": 413.93,
+      "text": "país adelantando las elecciones al 2023 y, digamos, le al Perú entero con la más alta responsabilidad",
+      "index": 26.543,
+      "families": {
+        "factual_rag": 14.188,
+        "syntactic": 53.775,
+        "promise_extraction": 0.0,
+        "linguistic": 66.875,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    },
+    {
+      "id": 50,
+      "start": 413.93,
+      "end": 418.93,
+      "text": "que nos vamos todos. Muchas gracias. Buenas noches.",
+      "index": 17.5,
+      "families": {
+        "factual_rag": 12.0,
+        "syntactic": 12.0,
+        "promise_extraction": 35.0,
+        "linguistic": 20.0,
+        "sentiment": 10.0
+      },
+      "es_linea_base": false
+    }
+  ],
+  "logs": [
+    "[Ingesta] Duración 432.1s, 0.0 fps. Pista PCM aislada.",
+    "[ingestion] 0.3s",
+    "[Transcription] 51 segmentos cargados desde Discurso Dina Boluarte 30 de enero de 2023.srt",
+    "[transcription] 0.0s",
+    "[Linguistic] 749 palabras analizadas en categorías LIWC.",
+    "[linguistic] 0.0s",
+    "[PromiseExtractor] 25 promesas y compromisos de Estado detectados.",
+    "[promise] 0.0s",
+    "[Sentiment] Polaridad media: 0.06, Volatilidad: 0.26",
+    "[sentiment] 0.0s",
+    "[Syntactic] Opacidad media Fog Index: 61.5/100",
+    "[syntactic] 0.0s",
+    "[FactualAlignment] Cruce RAG con MEF/BCRP: discrepancia media de 22.2/100, 3 temas únicos y 13 repeticiones agrupadas.",
+    "[factual] 0.0s",
+    "[Juez] Orquestación cerrada por Algoritmo Heurístico Agéntico Multi-Modal: Índice=47.4 -> neutral",
+    "[judge] 0.0s"
+  ],
+  "errors": [],
+  "methodology_warning": "Este reporte es una auditoría algorítmica de consistencia factual y presupuestal. Un índice de opacidad o desviación elevado indica que las afirmaciones macroeconómicas, jurídicas o sociales del ejecutivo presentan discrepancias estadísticas frente a las memorias anuales del BCRP y las partidas presupuestales de ejecución del MEF. Los resultados deben utilizarse como apoyo para la fiscalización documental, no como un dictamen judicial definitivo."
+}

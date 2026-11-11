@@ -1,17 +1,53 @@
 # NOTA: Definición del esquema del estado compartido para la arquitectura LangGraph.
-from typing import TypedDict, List, Dict, Any
+from __future__ import annotations
+import operator
+from typing import TypedDict, List, Dict, Any, Annotated
 
-class SpeechAnalysisState(TypedDict):
-    # Variables de entrada y transcripción
+
+class SpeechAnalysisState(TypedDict, total=False):
+    # Variables de entrada y orquestación
+    video: str
+    video_path: str
+    speaker: str
+    working_dir: str
+    config: Dict[str, Any]
     speech_id: str
+    
+    # Reducers for parallel nodes
+    logs: Annotated[List[str], operator.add]
+    errors: Annotated[List[str], operator.add]
+    
+    # Outputs de Ingesta
+    audio: str
+    duration: float
+    fps: float
+    metadata: Dict[str, Any]
+    
+    # Outputs de Transcripción
+    segments: List[Dict[str, Any]]
     transcribed_text: str
+    transcription_source: str
     
-    # Outputs del Agente 2 (Sintáctico/Facial original)
-    syntactic_metrics: Dict[str, float]
-    
-    # Outputs del Agente 3 (Extractor/Prosodia original)
+    # Outputs de Agentes de análisis
+    sentiment_metrics: Dict[str, Any]
+    linguistic_metrics: Dict[str, Any]
+    syntactic_metrics: Dict[str, Any]
+    promise_extraction_metrics: Dict[str, Any]
     extracted_promises: List[Dict[str, Any]]
+    factual_rag_metrics: Dict[str, Any]
+
+    # Arquitecturas Alternativas
+    architecture: str
+    plan: List[Dict[str, Any]]
+    plan_metrics: Dict[str, Any]
     
-    # Outputs del RAG y Auditoría factual con MEF/BCRP
+    # Arquitectura Multi-Agente con Supervisor (Clean Architecture)
+    supervisor_trace: List[Dict[str, Any]]
+    supervisor_metrics: Dict[str, Any]
+    next_worker: str
+    
+    # Auditoría, veredicto y reporte
     audit_results: Dict[str, Any]
+    verdict: Dict[str, Any]
     final_verdict: str
+    report: Dict[str, Any]

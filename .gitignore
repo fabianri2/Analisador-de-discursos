@@ -36,12 +36,3 @@ resultados_plan/
 .idea/
 Thumbs.db
 .DS_Store
-
-# Ejecutables binarios de multimedia (Fabián Core)
-*.exe
-ffmpeg
-ffplay
-ffprobe
-
-# Base de datos vectorial local
-data_storage/

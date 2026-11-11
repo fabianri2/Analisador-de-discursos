@@ -50,17 +50,21 @@ def _generate_timeline_svg(data_rows: List[Dict], total_duration: float, truth_t
         if index_value is None or not np.isfinite(index_value):
             continue
             
-        # Asignación categórica de color según desvío del MEF (Sincronizado con RAG)
-        bar_class = "b-alto" if index_value > deviation_threshold else ("b-medio" if index_value >= truth_threshold else "b-bajo")
+        factual_val = row.get("families", {}).get("factual_rag", 0.0)
+        # Resaltado forense: si tiene desvío factual crítico o índice general elevado
+        visual_score = max(index_value, factual_val if factual_val >= 60.0 else index_value)
+        bar_class = "b-alto" if visual_score > deviation_threshold else ("b-medio" if visual_score >= truth_threshold else "b-bajo")
         
         # Corrección crítica: Sincronizado con llaves en inglés ('start', 'end') de Whisper
         x0 = get_x(row["start"])
         x1 = get_x(row["end"])
         
+        bar_height = max(5.0, get_y(0) - get_y(visual_score))
+        bar_y = get_y(visual_score)
         svg_bars.append(
-            f'<rect class="{bar_class}" x="{x0:.1f}" y="{get_y(index_value):.1f}" '
-            f'width="{max(1.0, x1 - x0 - 1):.1f}" height="{get_y(0) - get_y(index_value):.1f}">'
-            f'<title>Seg. {row["id"]} ({_convert_seconds_to_mmss(row["start"])}): {index_value:.0f}</title></rect>'
+            f'<rect class="{bar_class}" x="{x0:.1f}" y="{bar_y:.1f}" '
+            f'width="{max(2.0, x1 - x0 - 1):.1f}" height="{bar_height:.1f}">'
+            f'<title>Seg. {row["id"]} ({_convert_seconds_to_mmss(row["start"])}): Índice {index_value:.0f}/100 | Factual {factual_val:.0f}/100</title></rect>'
         )
         
     timeline_markers = "".join(
@@ -89,13 +93,26 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
     speech_segments = {seg["id"]: seg for seg in state.get("segments", [])} if isinstance(state, dict) and "segments" in state else {}
     
     consistency_index = verdict.get("opacity_index", 0.0)
-    deviation_probability = verdict.get("deviation_probability", 0.0)
+    deviation_probability = verdict.get("deviation_probability")
     
-    display_value = f"{deviation_probability * 100:.0f}%" if deviation_probability else f"{consistency_index:.0f}"
     categorical_label = verdict.get("label", "neutral")
-    
     ui_theme = {"truth": "verdad", "deviation": "engano"}.get(categorical_label, "neutro")
-    ui_title_label = {"truth": "Consistencia Factual (Truth)", "deviation": "Desviación Detectada (Deviation)"}.get(categorical_label, "Evaluación Inconclusa")
+    ui_title_label = {
+        "truth": "Consistencia Factual (Truth)",
+        "deviation": "Desviación Crítica Detectada (Deviation)",
+        "neutral": "Discrepancia Moderada / Alertas Factuales"
+    }.get(categorical_label, "Discrepancia Moderada / Alertas Factuales")
+
+    speech_segments_list = state.get("segments", []) if isinstance(state, dict) else []
+    transcription_missing = bool(verdict.get("transcription_missing")) or not any(
+        str(segment.get("text", "")).strip() for segment in speech_segments_list
+    )
+    if transcription_missing:
+        ui_theme = "neutro"
+        ui_title_label = "Sin transcripción: contenido no auditable"
+        display_value = "—"
+    else:
+        display_value = f"{consistency_index:.0f}%" if consistency_index >= 1.0 else (f"{deviation_probability * 100:.0f}%" if deviation_probability else "0%")
 
     # Componente: Promedio por familia de agentes
     family_metrics_html = []
@@ -108,19 +125,63 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
                 f'<i style="width:{mean_value:.0f}%"></i></div><b>{mean_value:.0f}</b></div>'
             )
 
-    # Componente: Segmentos críticos con desviaciones severas encontradas por el RAG
+    # Componente: un hallazgo por tema regulatorio (sin repetir la misma discrepancia)
     critical_segments_html = []
-    for segment_id in verdict.get("critical_segments", []):
-        row_data = next((x for x in data_rows if x["id"] == segment_id), None)
-        segment_data = speech_segments.get(segment_id) if speech_segments else None
-        
-        if row_data and segment_data:
+    critical_findings = verdict.get("critical_findings") or []
+    critical_topics_by_segment = {finding["segment_id"]: finding for finding in critical_findings}
+
+    if critical_findings:
+        for finding in critical_findings:
+            segment_data = speech_segments.get(finding["segment_id"])
+            if not segment_data:
+                continue
             escaped_text = html.escape(segment_data.get("text", "(Sin texto transcribir)"))
-            critical_segments_html.append(
-                f'<li><div class="t">{_convert_seconds_to_mmss(segment_data.get("start", 0.0))}–{_convert_seconds_to_mmss(segment_data.get("end", 0.0))} · '
-                f'<b>{row_data.get("index", 0):.0f}</b></div><p>“{escaped_text}”</p>'
-                f'<p class="det" style="color:var(--bad)">Alerta Forense: Discrepancia crítica encontrada por el RAG en reportes del MEF.</p></li>'
+            det_note = html.escape(finding.get("audit_note") or (
+                "Alerta Forense: Discrepancia crítica frente a la evidencia documental oficial "
+                "de entidades del Estado (MEF/BCRP/JNE)."
+            ))
+            mentions = int(finding.get("mentions", 1) or 1)
+            repeat_badge = (
+                f'<span class="rep">Mismo tema en {mentions} segmentos</span>' if mentions > 1 else ""
             )
+            source_short = (finding.get("source") or "MEF/BCRP/JNE").split("(")[0].strip()
+
+            critical_segments_html.append(
+                f'<li><div class="t">{_convert_seconds_to_mmss(finding.get("start", 0.0))}–'
+                f'{_convert_seconds_to_mmss(finding.get("end", 0.0))} · '
+                f'<b class="tema">{html.escape(finding.get("topic", "Discrepancia factual"))}</b> '
+                f'{repeat_badge}</div>'
+                f'<div class="t">Discrepancia Factual: <b style="color:var(--bad)">'
+                f'{finding.get("factual_score", 0):.0f}/100</b> · '
+                f'Índice Compuesto: {finding.get("index", 0):.0f}/100</div>'
+                f'<p>“{escaped_text}”</p>'
+                f'<p class="det" style="color:var(--bad);margin:4px 0 0"><b>Hallazgo RAG ({html.escape(source_short)}):</b> {det_note}</p></li>'
+            )
+    else:
+        # Compatibilidad con veredictos antiguos que solo traían la lista de ids
+        for segment_id in verdict.get("critical_segments", []):
+            row_data = next((x for x in data_rows if x["id"] == segment_id), None)
+            segment_data = speech_segments.get(segment_id) if speech_segments else None
+
+            if row_data and segment_data:
+                escaped_text = html.escape(segment_data.get("text", "(Sin texto transcribir)"))
+                det_note = ""
+                for det in row_data.get("detonantes", []):
+                    if det.get("note"):
+                        det_note = html.escape(det["note"])
+                        break
+                if not det_note:
+                    det_note = "Alerta Forense: Discrepancia crítica frente a la evidencia documental oficial de entidades del Estado (MEF/BCRP/JNE)."
+
+                factual_val = row_data.get("families", {}).get("factual_rag", row_data.get("index", 0.0))
+                composite_val = row_data.get("index", 0.0)
+
+                critical_segments_html.append(
+                    f'<li><div class="t">{_convert_seconds_to_mmss(segment_data.get("start", 0.0))}–{_convert_seconds_to_mmss(segment_data.get("end", 0.0))} · '
+                    f'<b style="color:var(--bad)">Discrepancia Factual: {factual_val:.0f}/100</b> · '
+                    f'<span class="mut">Índice Compuesto: {composite_val:.0f}/100</span></div><p>“{escaped_text}”</p>'
+                    f'<p class="det" style="color:var(--bad);margin:4px 0 0"><b>Hallazgo RAG (MEF/BCRP/JNE):</b> {det_note}</p></li>'
+                )
 
     # Componente: Tabla secuencial completa (Sincronizada con llaves 'start', 'text')
     table_rows_html = []
@@ -129,18 +190,48 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
         idx_val = row.get("index", 0.0)
         row_class = "alto" if idx_val > judge_config.get("deviation_threshold", 65.0) else ""
         display_idx = f"{idx_val:.0f}" if np.isfinite(idx_val) else "–"
-        
+
+        critical_finding = critical_topics_by_segment.get(row["id"])
+        if critical_finding:
+            finding_cell = f'<span class="tema">{html.escape(critical_finding["topic"])}</span>'
+        elif row.get("topic") and row.get("factual_primary") is False:
+            finding_cell = f'<span class="mut">Reitera: {html.escape(row["topic"])}</span>'
+        else:
+            finding_cell = '<span class="mut">—</span>'
+
         if segment_data:
             escaped_text = html.escape(segment_data.get("text", ""))
             time_str = _convert_seconds_to_mmss(segment_data.get("start", 0.0))
         else:
             escaped_text = "(Análisis de Ventana Estática / Entrada Documental)"
             time_str = _convert_seconds_to_mmss(row.get("start", 0.0))
-            
+
         table_rows_html.append(
             f'<tr class="{row_class}"><td>{time_str}</td><td>{display_idx}</td>'
-            f'<td>{escaped_text}</td></tr>'
+            f'<td>{finding_cell}</td><td>{escaped_text}</td></tr>'
         )
+
+    # Componente: plan de verificación (solo cuando se usa la arquitectura Plan-and-Execute)
+    plan_metrics = state.get("plan_metrics") if isinstance(state, dict) else None
+    plan_section_html = ""
+    if plan_metrics:
+        plan_rows_html = "".join(
+            f'<tr><td>{step.get("step")}</td>'
+            f'<td>{html.escape(str(step.get("claim", ""))[:160])}</td>'
+            f'<td>{html.escape(str(step.get("resolution") or step.get("status")))}</td>'
+            f'<td>{html.escape(str(step.get("source") or "—"))}</td></tr>'
+            for step in state.get("plan", [])
+        )
+        coverage = float(plan_metrics.get("coverage", 0.0)) * 100
+        plan_section_html = f"""<section class="card">
+    <h2>Plan de verificación (Plan-and-Execute)</h2>
+    <p class="mut" style="margin:0 0 6px">El planner descompuso el discurso en {plan_metrics.get('planned_steps', 0)} pasos;
+    se resolvieron {plan_metrics.get('resolved_steps', 0)} con evidencia documental
+    ({plan_metrics.get('replanned_steps', 0)} por replanificación), cobertura {coverage:.0f}%.</p>
+    <table><thead><tr><th>#</th><th>Afirmación</th><th>Resultado</th><th>Fuente</th></tr></thead>
+    <tbody>{plan_rows_html}</tbody></table>
+</section>
+"""
 
     execution_logs = "".join(f"<li>{html.escape(log)}</li>" for log in state.get("logs", [])) if isinstance(state, dict) else ""
     execution_errors = "".join(f"<li>{html.escape(err)}</li>" for err in state.get("errors", [])) if isinstance(state, dict) else ""
@@ -153,6 +244,16 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
         
     confidence_text = f"{verdict.get('confidence', 0.9) * 100:.0f}%"
     video_duration = state.get("duration", 72.0) if isinstance(state, dict) else 72.0
+
+    missing_banner_html = ""
+    if transcription_missing:
+        missing_banner_html = (
+            '<section class="card aviso" style="border-left-color:var(--bad)">'
+            '<b>Sin transcripción:</b> <span class="mut">No se pudo convertir el audio a texto, '
+            'así que el índice y el dictamen <b>no evalúan el contenido</b> del discurso. '
+            'Revisa las “Alertas de Degradación Controlada” al final del reporte '
+            '(ffmpeg y modelo de Whisper).</span></section>'
+        )
 
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -185,6 +286,8 @@ svg{{width:100%;height:auto}}.eje{{font-size:11px;fill:var(--mut)}}
 table{{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}}th,td{{padding:8px;text-align:left;border-bottom:1px solid var(--ln)}}
 tr.alto td{{background:color-mix(in srgb,var(--bad) 9%,transparent)}}
 ul{{padding-left:20px}}li{{margin-bottom:12px}}.t{{font-size:13px;color:var(--mut)}}
+.tema{{color:var(--ac)}}.rep{{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;
+font-size:11px;background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}}
 .aviso{{border-left:4px solid var(--mid)}}
 details summary{{cursor:pointer;font-weight:600}}
 @media (max-width:600px){{.hero{{grid-template-columns:1fr}}.cifra{{font-size:44px}}}}
@@ -199,7 +302,7 @@ details summary{{cursor:pointer;font-weight:600}}
         <p class="mut" style="margin:0">Confianza del sistema: {confidence_text} · Clasificador: Random Forest (Agéntico)</p>
     </div>
 </section>
-
+{missing_banner_html}
 <section class="card aviso">
     <b>Metodología de Lectura Regulatoria:</b> <span class="mut">{METRIC_WARNING}</span>
 </section>
@@ -219,14 +322,16 @@ details summary{{cursor:pointer;font-weight:600}}
     </div>
 </section>
 
+{plan_section_html}
 <section class="card">
     <h2>Segmentos con Discrepancias Críticas (Cruce MEF/BCRP)</h2>
+    <p class="mut" style="margin:0 0 6px">Se muestra un solo hallazgo por tema regulatorio: si la misma promesa se repite en varios segmentos, se agrupa en la primera mención.</p>
     {f"<ul>{''.join(critical_segments_html)}</ul>" if critical_segments_html else "<p class='mut'>Ningún segmento superó el umbral de desvío crítico de datos duros.</p>"}
 </section>
 
 <section class="card">
     <h2>Transcripción y Mapeo Secuencial de Opacidad</h2>
-    <table><thead><tr><th>Tiempo</th><th>Índice</th><th>Texto del Segmento</th></tr></thead>
+    <table><thead><tr><th>Tiempo</th><th>Índice</th><th>Hallazgo</th><th>Texto del Segmento</th></tr></thead>
     <tbody>{"".join(table_rows_html)}</tbody></table>
 </section>
 
@@ -263,6 +368,9 @@ def report_generator_agent(state: Any) -> dict:
                      for s, f in zip(state.get("segments", []), verdict_data.get("by_segment", []))],
         "logs": state.get("logs", []),
         "errors": state.get("errors", []),
+        "architecture": (state.get("plan_metrics") or {}).get("architecture", "pipeline"),
+        "plan_metrics": state.get("plan_metrics"),
+        "plan": state.get("plan", []),
         "methodology_warning": METRIC_WARNING,
     }
     

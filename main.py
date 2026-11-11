@@ -12,6 +12,11 @@ import math
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from src.config import cargar_config
 
 VIDEO_EXTENSIONS = {".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v"}
@@ -42,11 +47,31 @@ def cmd_analyze(args: argparse.Namespace):
             config=system_config, 
             output_dir=args.output, 
             speaker=args.speaker, 
-            verbose=not args.silent
+            verbose=not args.silent,
+            architecture=getattr(args, "arquitectura", "pipeline"),
         )
         
         verdict = state_result.get("verdict", {})
         opacity_index = verdict.get("opacity_index", 0.0)
+
+        plan_metrics = state_result.get("plan_metrics")
+        if plan_metrics:
+            print(
+                f"Arquitectura: {plan_metrics['architecture']} · "
+                f"Pasos: {plan_metrics['planned_steps']} · "
+                f"Resueltos: {plan_metrics['resolved_steps']} · "
+                f"Replanificados: {plan_metrics['replanned_steps']} · "
+                f"Cobertura: {plan_metrics['coverage'] * 100:.0f}%"
+            )
+
+        supervisor_metrics = state_result.get("supervisor_metrics")
+        if supervisor_metrics:
+            print(
+                f"Arquitectura: Supervisor Multi-Agente (Clean Arch) · "
+                f"Ciclos de control: {supervisor_metrics['total_cycles']} · "
+                f"Especialistas convocados: {len(supervisor_metrics['workers_called'])} · "
+                f"Alertas críticas gestionadas: {supervisor_metrics['critical_discrepancies_detected']}"
+            )
         
         # Impresiones en consola formateadas para la defensa del MVP
         print(f"\nResultado  : {verdict.get('label', 'N/A')}")  # Muestra: 'truth' o 'deviation'
@@ -92,6 +117,12 @@ def main(argv: list[str] | None = None) -> int:
     analyze_parser.add_argument("--speaker")
     analyze_parser.add_argument("--output", default="results")
     analyze_parser.add_argument("--silent", action="store_true")
+    analyze_parser.add_argument(
+        "--arquitectura",
+        choices=["pipeline", "plan-and-execute", "supervisor"],
+        default="pipeline",
+        help="Arquitectura agéntica de verificación factual (pipeline, plan-and-execute o supervisor)",
+    )
     analyze_parser.set_defaults(func=cmd_analyze)
 
     # Command mapping: train

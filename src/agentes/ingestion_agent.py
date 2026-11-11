@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -13,14 +14,49 @@ from ..state import SpeechAnalysisState
 AGENT_NAME = "Ingesta"
 
 
-def _run_ffprobe_metadata_scan(video_path: str) -> Dict[str, Any]:
+def _resolve_ffmpeg_binary() -> str | None:
+    """Locates ffmpeg on PATH or falls back to the binary bundled with the imageio-ffmpeg wheel."""
+    system_binary = shutil.which("ffmpeg")
+    if system_binary:
+        return system_binary
+    try:
+        import imageio_ffmpeg  # type: ignore
+
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _run_ffprobe_metadata_scan(video_path: str, ffprobe_binary: str) -> Dict[str, Any]:
     """Executes an internal ffprobe subprocess command to scan structural video stream matrices."""
     command_args = [
-        "ffprobe", "-v", "error", "-print_format", "json",
+        ffprobe_binary, "-v", "error", "-print_format", "json",
         "-show_format", "-show_streams", video_path,
     ]
     stdout_stream = subprocess.run(command_args, capture_output=True, text=True, check=True).stdout
     return json.loads(stdout_stream)
+
+
+def _probe_metadata_without_ffprobe(ffmpeg_binary: str, video_path: str) -> Dict[str, Any]:
+    """Fallback metadata scan: parses the human readable report that ffmpeg writes to stderr."""
+    completed = subprocess.run(
+        [ffmpeg_binary, "-hide_banner", "-i", video_path],
+        capture_output=True, text=True, errors="replace",
+    )
+    report = completed.stderr or ""
+    duration = 0.0
+    duration_match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", report)
+    if duration_match:
+        hours, minutes, seconds = duration_match.groups()
+        duration = int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+    return {
+        "format": {"duration": str(duration), "format_name": "ffmpeg-probe"},
+        "streams": [
+            {"codec_type": "video" if "Video:" in line else "audio"}
+            for line in report.splitlines()
+            if line.strip().startswith("Stream #") and ("Video:" in line or "Audio:" in line)
+        ],
+    }
 
 
 def ingestion_agent(state: Any) -> dict:
@@ -41,9 +77,14 @@ def ingestion_agent(state: Any) -> dict:
 
     if not Path(video_source).exists():
         raise FileNotFoundError(f"Error de Ingesta: No existe el archivo de video especificado: {video_source}")
-        
-    if shutil.which("ffmpeg") is None:
-        raise RuntimeError("Error de Dependencia: Se requiere ffmpeg instalado y configurado en el PATH del sistema.")
+
+    ffmpeg_binary = _resolve_ffmpeg_binary()
+    if ffmpeg_binary is None:
+        raise RuntimeError(
+            "Error de Dependencia: Se requiere ffmpeg instalado y configurado en el PATH del sistema "
+            "(o el paquete imageio-ffmpeg dentro del entorno virtual)."
+        )
+    ffprobe_binary = shutil.which("ffprobe")
 
     # Mapeo seguro de configuración
     try:
@@ -53,12 +94,15 @@ def ingestion_agent(state: Any) -> dict:
         sampling_rate = 16000
         working_dir_base = "results"
     
-    working_directory = Path(working_dir_base) / Path(video_source).stem
+    working_directory = Path(working_dir_base)
     working_directory.mkdir(parents=True, exist_ok=True)
     audio_output_path = working_directory / "audio.wav"
 
     # Extracción computacional de metadatos forenses
-    metadata_info = _run_ffprobe_metadata_scan(video_source)
+    if ffprobe_binary:
+        metadata_info = _run_ffprobe_metadata_scan(video_source, ffprobe_binary)
+    else:
+        metadata_info = _probe_metadata_without_ffprobe(ffmpeg_binary, video_source)
     duration_seconds = float(metadata_info["format"].get("duration", 0.0))
     fps_rate = 0.0
     has_video_track = has_audio_track = False
@@ -76,7 +120,7 @@ def ingestion_agent(state: Any) -> dict:
 
     # Invocación computacional a ffmpeg para aislar el canal de voz en PCM monocanal
     subprocess.run(
-        ["ffmpeg", "-y", "-v", "error", "-i", video_source, "-vn", "-ac", "1",
+        [ffmpeg_binary, "-y", "-v", "error", "-i", video_source, "-vn", "-ac", "1",
          "-ar", str(sampling_rate), "-acodec", "pcm_s16le", str(audio_output_path)],
         check=True,
     )

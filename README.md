@@ -42,6 +42,19 @@ Asegúrate de tener activo tu entorno virtual (`.venv`) en la raíz del proyecto
 python main.py analyze videos/discurso.mp4 --output results --speaker "NombrePresidente"
 ```
 
+### 1.b Ejecutar con la arquitectura Plan-and-Execute:
+```bash
+python main.py analyze videos/discurso.mp4 --arquitectura plan-and-execute --output results
+```
+El planner descompone el discurso en pasos de verificación, el executor los resuelve contra los benchmarks documentales y el replanner reformula los pasos sin evidencia. Las métricas del plan (pasos, cobertura, replanificaciones) quedan en `result.json` y en una sección del reporte HTML.
+
+### 1.c Pruebas y evaluación:
+```bash
+python -m unittest discover -s tests -v          # pruebas unitarias
+python scripts/evaluar_plan_and_execute.py       # métricas locales del plan
+python scripts/evaluar_plan_and_execute.py --langsmith   # experimento en LangSmith (opcional)
+```
+
 ### 2. Optimizar y Entrenar las Fronteras de Decisión del Clasificador (Machine Learning):
 ```bash
 python main.py train datasets/etiquetas_factores.csv --model models/classifier.joblib
@@ -56,17 +69,19 @@ Para desplegar el entorno de desarrollo modular en sus computadoras locales, eje
 ```powershell
 # 1. Clonar el repositorio oficial e ingresar a la raíz
 git clone <URL_DE_SU_REPOSITORIO>
-cd analizador_discursos
+cd Analisador-de-discursos
 
 # 2. Inicializar y activar el entorno virtual aislado (Windows)
 python -m venv .venv
 .\.venv\Scripts\activate
 
 # 3. Instalar el stack de dependencias analíticas y de procesamiento
-pip install numpy pandas scikit-learn joblib langgraph streamlit textblob
+pip install -r requirements.txt
 ```
 
-> ⚠️ **Requisito del Sistema:** Es mandatorio tener instalado **`ffmpeg`** y configurado correctamente en el `PATH` del sistema de Windows para permitir que el agente de ingesta aísle el canal de audio PCM.
+> ⚠️ **Requisito del Sistema:** El agente de ingesta necesita **`ffmpeg`**. Si no está instalado en el `PATH` de Windows, el sistema utiliza automáticamente el binario incluido en el paquete `imageio-ffmpeg` del entorno virtual (`ffprobe` es opcional: sin él se leen los metadatos directamente desde `ffmpeg`).
+
+> 🎙️ **Caché del modelo Whisper:** la primera transcripción descarga el modelo (~145 MB) en `.hf_cache/` dentro del proyecto (ignorada por Git). Si Windows bloquea `%USERPROFILE%\.cache` (error `[WinError 5] Acceso denegado`), el sistema elige esa carpeta local automáticamente. Si la transcripción falla del todo, el dictamen se marca como **no concluyente** en lugar de reportar un falso `truth`.
 
 ---
 
@@ -88,6 +103,7 @@ El sistema procesa la información mediante dos canales paralelos independientes
     *   **Índice < 40.0** ➔ `truth` (Consistencia Factual demostrada por el RAG).
     *   **Índice > 65.0** ➔ `deviation` (Desviación Detectada / Discrepancia crítica con el MEF y BCRP).
     *   **40.0 ≤ Índice ≤ 65.0** ➔ `neutral` (Evaluación Inconclusa / Falta de datos oficiales en la base vectorial).
+3.  **Regla de Reporte (una discrepancia por tema):** Si una misma promesa se repite en varios segmentos, el agente factual la cuenta **una sola vez** (en su primera mención) y marca el resto como `Reitera: <tema>`. Así la sección de discrepancias críticas no muestra nueve veces el mismo hallazgo.
 
 ---
 
