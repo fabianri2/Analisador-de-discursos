@@ -42,17 +42,22 @@ font-size:11px;background:color-mix(in srgb,var(--mid) 18%,transparent);color:va
 .log-sup{color:var(--ac);font-weight:600}
 .log-agent{color:var(--ok);font-weight:600}
 .log-time{color:var(--mut);font-size:11px;white-space:nowrap}
+.sup-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0 6px}
+.sup-kpi{background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:10px 12px}
+.sup-kpi span{display:block;font-size:11px;color:var(--mut)}
+.sup-kpi b{font-size:18px;color:var(--ac)}
+.sup-phase{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--ac)}
 details summary{cursor:pointer;font-weight:600}
-@media (max-width:700px){.hero,.spectrum-grid{grid-template-columns:1fr}.cifra{font-size:44px}}
+@media (max-width:700px){.hero,.spectrum-grid{grid-template-columns:1fr}.sup-kpis{grid-template-columns:repeat(2,1fr)}.cifra{font-size:44px}}
 </style></head><body><main>
 <h1>Reporte Forense Agéntico: Dina Boluarte</h1>
-<div class="mut">Archivo original: Discurso Dina Boluarte 30 de enero de 2023.srt · Duración real: 06:58 · Ejecutado el 11/11/2026 01:04</div>
+<div class="mut">Archivo original: Discurso Dina Boluarte 30 de enero de 2023.srt · Duración real: 06:58 · Ejecutado el 11/11/2026 07:51</div>
 
 <section class="card hero">
     <div class="cifra neutro">47%</div>
     <div>
         <h2>Dictamen General: <span class="neutro">Discrepancia Moderada / Alertas Factuales</span></h2>
-        <p class="mut" style="margin:0">Confianza del sistema: 80% · Método: Algoritmo Heurístico Agéntico Multi-Modal</p>
+        <p class="mut" style="margin:0">Arquitectura: <b>Multi-Agente con Supervisor (Clean Architecture)</b> · Confianza del sistema: 80% · Método: Algoritmo Heurístico Agéntico Multi-Modal</p>
     </div>
 </section>
 
@@ -102,6 +107,17 @@ details summary{cursor:pointer;font-weight:600}
     </div>
 </section>
 
+<section class="card">
+    <h2>Orquestación Multi-Agente con Supervisor (Clean Architecture)</h2>
+    <p class="mut" style="margin:0 0 10px">Topología en estrella (Hub-and-Spoke) bajo separación de capas Dominio → Aplicación → Adaptadores → Infraestructura.</p>
+    <div class="sup-kpis">
+        <div class="sup-kpi"><span>Ciclos de control</span><b>7</b></div>
+        <div class="sup-kpi"><span>Especialistas convocados</span><b>7</b></div>
+        <div class="sup-kpi"><span>Alertas críticas</span><b>3</b></div>
+        <div class="sup-kpi"><span>Patrón</span><b>Supervisor</b></div>
+    </div>
+    <table><thead><tr><th>Ciclo</th><th>Fase</th><th>Especialista Asignado</th><th>Directiva del Supervisor</th><th>Alerta</th></tr></thead><tbody><tr class=""><td>1</td><td><span class="sup-phase">INITIALIZING</span></td><td><b>ingestion_transcription</b></td><td>No se cuenta con transcripción ni segmentos. Delegar en especialista de Ingesta y Transcripción.</td><td><span class="badge-der">Normal</span></td></tr><tr class=""><td>2</td><td><span class="sup-phase">EXTRACTING_PROMISES</span></td><td><b>promise_extraction</b></td><td>Transcripción disponible. Delegar en especialista de Promesas para aislar compromisos verificables.</td><td><span class="badge-der">Normal</span></td></tr><tr class=""><td>3</td><td><span class="sup-phase">ANALYZING_STYLE</span></td><td><b>linguistic_analysis</b></td><td>Faltan marcadores léxicos LIWC. Delegar en especialista Lingüístico.</td><td><span class="badge-der">Normal</span></td></tr><tr class=""><td>4</td><td><span class="sup-phase">ANALYZING_STYLE</span></td><td><b>syntactic_analysis</b></td><td>Falta cálculo de opacidad sintáctica (Índice de Niebla). Delegar en especialista Sintáctico.</td><td><span class="badge-der">Normal</span></td></tr><tr class=""><td>5</td><td><span class="sup-phase">AUDITING_FACTS</span></td><td><b>factual_audit</b></td><td>Métricas estilísticas completas y 25 promesas aisladas. Delegar en especialista Factual RAG para contrastación regulatoria contra MEF/BCRP/JNE.</td><td><span class="badge-der">Normal</span></td></tr><tr class="alto"><td>6</td><td><span class="sup-phase">CONSOLIDATING_VERDICT</span></td><td><b>judge_consolidation</b></td><td>Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 3 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.</td><td><span class="badge-izq">⚠ Crítica</span></td></tr><tr class=""><td>7</td><td><span class="sup-phase">GENERATING_REPORT</span></td><td><b>report_generation</b></td><td>Veredicto emitido (neutral). Delegar en Agente Reportero para generar HTML y JSON.</td><td><span class="badge-der">Normal</span></td></tr></tbody></table>
+</section>
 
 <section class="card">
     <h2>Segmentos con Discrepancias Críticas (Cruce MEF/BCRP)</h2>
@@ -117,8 +133,8 @@ details summary{cursor:pointer;font-weight:600}
 
 <section class="card">
     <details><summary>Bitácora de Ejecución del Sistema (LangGraph Logs)</summary>
-    <ul class="log-list"><li class="log-item"><span><span class="log-sup">[Supervisor c1] -&gt; ingestion_transcription: No se cuenta con transcripción ni segmentos. Delegar en especialista de Ingesta y Transcripción.</span></span></li><li class="log-item"><span><span class="log-agent">[Transcription] 51 segmentos cargados desde Discurso Dina Boluarte 30 de enero de 2023.srt</span></span></li><li class="log-item"><span><span class="log-sup">[Supervisor c2] -&gt; promise_extraction: Transcripción disponible. Delegar en especialista de Promesas para aislar compromisos verificables.</span></span></li><li class="log-item"><span><span class="log-agent">[PromiseExtractor] 25 promesas y compromisos de Estado detectados.</span></span></li><li class="log-item"><span><span class="log-sup">[Supervisor c3] -&gt; linguistic_analysis: Faltan marcadores léxicos LIWC. Delegar en especialista Lingüístico.</span></span></li><li class="log-item"><span><span class="log-agent">[Linguistic] 749 palabras analizadas en categorías LIWC.</span></span></li><li class="log-item"><span>[linguistic_analysis] 0.03s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c4] -&gt; syntactic_analysis: Falta cálculo de opacidad sintáctica (Índice de Niebla). Delegar en especialista Sintáctico.</span></span></li><li class="log-item"><span><span class="log-agent">[Syntactic] Opacidad media Fog Index: 61.5/100</span></span></li><li class="log-item"><span><span class="log-sup">[Supervisor c5] -&gt; factual_audit: Métricas estilísticas completas y 25 promesas aisladas. Delegar en especialista Factual RAG para contrastación regulatoria contra MEF/BCRP/JNE.</span></span></li><li class="log-item"><span><span class="log-agent">[FactualAlignment] Cruce RAG MEF/BCRP + ChromaDB: discrepancia media 22.2/100, contraste político (3 izq / 3 der), sectores omitidos: Salud Pública y Hospitales, Desarrollo Territorial Andino y Regiones, Educación e Infraestructura Escolar, Reactivación Agraria e Hídrica.</span></span></li><li class="log-item"><span>[factual_audit] 1.25s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c6] -&gt; judge_consolidation: Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 3 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.</span></span></li><li class="log-item"><span><span class="log-agent">[Juez] Orquestación cerrada por Algoritmo Heurístico Agéntico Multi-Modal: Índice=47.4 -&gt; neutral</span></span></li><li class="log-item"><span>[judge_consolidation] 0.04s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c7] -&gt; report_generation: Veredicto emitido (neutral). Delegar en Agente Reportero para generar HTML y JSON.</span></span></li></ul>
-    <h3>Alertas de Degradación Controlada</h3><ul><li>Falla de inferencia en el modelo de Machine Learning: &#x27;LogisticRegression&#x27; object has no attribute &#x27;multi_class&#x27;</li></ul>
+    <ul class="log-list"><li class="log-item"><span><span class="log-sup">[Supervisor c1] -&gt; ingestion_transcription: No se cuenta con transcripción ni segmentos. Delegar en especialista de Ingesta y Transcripción.</span></span></li><li class="log-item"><span>[supervisor] 0.02s</span></li><li class="log-item"><span><span class="log-agent">[Transcription] 51 segmentos cargados desde Discurso Dina Boluarte 30 de enero de 2023.srt</span></span></li><li class="log-item"><span>[ingestion_transcription] 0.01s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c2] -&gt; promise_extraction: Transcripción disponible. Delegar en especialista de Promesas para aislar compromisos verificables.</span></span></li><li class="log-item"><span><span class="log-agent">[PromiseExtractor] 25 promesas y compromisos de Estado detectados.</span></span></li><li class="log-item"><span>[promise_extraction] 0.01s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c3] -&gt; linguistic_analysis: Faltan marcadores léxicos LIWC. Delegar en especialista Lingüístico.</span></span></li><li class="log-item"><span><span class="log-agent">[Linguistic] 749 palabras analizadas en categorías LIWC.</span></span></li><li class="log-item"><span>[linguistic_analysis] 0.27s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c4] -&gt; syntactic_analysis: Falta cálculo de opacidad sintáctica (Índice de Niebla). Delegar en especialista Sintáctico.</span></span></li><li class="log-item"><span><span class="log-agent">[Syntactic] Opacidad media Fog Index: 61.5/100</span></span></li><li class="log-item"><span>[syntactic_analysis] 0.01s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c5] -&gt; factual_audit: Métricas estilísticas completas y 25 promesas aisladas. Delegar en especialista Factual RAG para contrastación regulatoria contra MEF/BCRP/JNE.</span></span></li><li class="log-item"><span><span class="log-agent">[FactualAlignment] Cruce RAG MEF/BCRP + ChromaDB: discrepancia media 22.2/100, contraste político (3 izq / 3 der), sectores omitidos: Salud Pública y Hospitales, Desarrollo Territorial Andino y Regiones, Educación e Infraestructura Escolar, Reactivación Agraria e Hídrica.</span></span></li><li class="log-item"><span>[factual_audit] 18.68s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c6] -&gt; judge_consolidation: Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 3 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.</span></span></li><li class="log-item"><span><span class="log-agent">[Juez] Orquestación cerrada por Algoritmo Heurístico Agéntico Multi-Modal: Índice=47.4 -&gt; neutral</span></span></li><li class="log-item"><span>[judge_consolidation] 0.23s</span></li><li class="log-item"><span><span class="log-sup">[Supervisor c7] -&gt; report_generation: Veredicto emitido (neutral). Delegar en Agente Reportero para generar HTML y JSON.</span></span></li></ul>
+    
     </details>
 </section>
 </main></body></html>

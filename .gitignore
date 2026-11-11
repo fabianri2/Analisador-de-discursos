@@ -12,6 +12,7 @@ results/*/*.wav
 
 # Corpus local de videos de taller (archivos de varios GB, no versionar)
 VIDEOS_TALLER/
+videos/_uploads/
 videos/*.mp4
 videos/*.mkv
 videos/*.mov
@@ -27,6 +28,7 @@ videos/*.webm
 # Salidas generadas en las pruebas locales
 resultados_taller/
 resultados_plan/
+results/_prueba*/
 
 # Documentación local (se sube a Notion, no al repositorio)
 /docs/

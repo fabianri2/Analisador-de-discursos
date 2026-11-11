@@ -67,3 +67,43 @@ class SupervisorMetrics:
             "final_verdict": self.final_verdict,
             "confidence_score": self.confidence_score,
         }
+
+
+class AlgorithmMode(str, Enum):
+    """Criterio algorítmico seleccionable para el arbitraje del Juez."""
+    HEURISTIC = "heuristic"
+    ML = "ml"
+
+
+@dataclass(frozen=True)
+class AnalysisRequest:
+    """Contrato inmutable de entrada para ejecutar una auditoría de discurso."""
+    video_path: str
+    speaker: Optional[str] = None
+    architecture: str = "supervisor"
+    output_dir: str = "results"
+    algorithm_mode: AlgorithmMode = AlgorithmMode.HEURISTIC
+    verbose: bool = True
+
+
+@dataclass
+class AnalysisExecutionResult:
+    """Resultado estructurado de dominio independiente de la interfaz (CLI o Web)."""
+    architecture: str
+    video_path: str
+    speaker: str
+    verdict: Dict[str, Any] = field(default_factory=dict)
+    supervisor_metrics: Optional[Dict[str, Any]] = None
+    supervisor_trace: List[Dict[str, Any]] = field(default_factory=list)
+    plan_metrics: Optional[Dict[str, Any]] = None
+    plan: List[Dict[str, Any]] = field(default_factory=list)
+    left_wing_evidence: List[Dict[str, Any]] = field(default_factory=list)
+    right_wing_evidence: List[Dict[str, Any]] = field(default_factory=list)
+    omitted_topics: List[str] = field(default_factory=list)
+    report_html_path: Optional[str] = None
+    report_json_path: Optional[str] = None
+    report_html_content: str = ""
+    report_json_data: Dict[str, Any] = field(default_factory=dict)
+    logs: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+

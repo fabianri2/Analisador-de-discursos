@@ -6,6 +6,8 @@ Ejecutar con:
 """
 from __future__ import annotations
 
+import ast
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -14,15 +16,19 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
+from src.application.speech_analysis_use_case import AnalyzeSpeechUseCase
 from src.application.supervisor_policy import StandardSupervisorPolicy
 from src.arquitecturas.supervisor import analyze_with_supervisor, build_supervisor_graph
 from src.config import cargar_config
 from src.domain.entities import (
+    AlgorithmMode,
+    AnalysisRequest,
     SupervisorDirective,
     SupervisorMetrics,
     SupervisorPhase,
     WorkerType,
 )
+from src.domain.interfaces import IReportRepository, ISpeechPipelineGateway
 
 SPEECH_SEGMENTS = [
     {
@@ -187,9 +193,93 @@ class SupervisorArchitectureTest(unittest.TestCase):
         self.assertIn("verdict", final_state)
         self.assertIn(final_state["verdict"]["label"], ("truth", "deviation", "neutral"))
 
-        # Validar generación del reporte
+        # Validar generación del reporte y visibilidad de Supervisor en HTML/JSON
         self.assertIn("report", final_state)
         self.assertIn("html", final_state["report"])
+        self.assertIn("json", final_state["report"])
+
+        html_content = Path(final_state["report"]["html"]).read_text(encoding="utf-8")
+        json_content = json.loads(Path(final_state["report"]["json"]).read_text(encoding="utf-8"))
+
+        self.assertEqual(json_content["architecture"], "supervisor")
+        self.assertIsNotNone(json_content.get("supervisor_metrics"))
+        self.assertGreater(len(json_content.get("supervisor_trace", [])), 3)
+        self.assertIn("Orquestación Multi-Agente con Supervisor", html_content)
+        self.assertIn("Multi-Agente con Supervisor (Clean Architecture)", html_content)
+
+    def test_analyze_speech_use_case_clean_architecture_isolation(self):
+        """Verifica que el Caso de Uso opere desacoplado de LangGraph/Streamlit mediante interfaces."""
+
+        class _FakeGateway(ISpeechPipelineGateway):
+            def run_pipeline(self, video_path, config, output_dir, speaker, verbose, architecture):
+                self.captured_config = config
+                return {
+                    "architecture": architecture,
+                    "video": video_path,
+                    "speaker": speaker,
+                    "verdict": {"label": "neutral", "opacity_index": 47.4, "confidence": 0.8},
+                    "supervisor_metrics": {"architecture": "supervisor", "total_cycles": 8, "workers_called": ["factual_audit"]},
+                    "supervisor_trace": [{"cycle": 1, "phase": "AUDITING_FACTS", "assigned_worker": "factual_audit", "rationale": "ok", "critical_alert": False}],
+                    "omitted_topics": ["Salud Pública y Hospitales"],
+                    "report": {"json": "fake.json", "html": "fake.html"},
+                }
+
+        class _FakeRepo(IReportRepository):
+            def load_artifacts(self, json_path, html_path):
+                return ({"architecture": "supervisor"}, "<html>Supervisor OK</html>")
+
+        gateway = _FakeGateway()
+        use_case = AnalyzeSpeechUseCase(
+            pipeline_gateway=gateway,
+            report_repository=_FakeRepo(),
+            config_loader=cargar_config,
+        )
+        req = AnalysisRequest(
+            video_path="videos/discurso_prueba.srt",
+            speaker="Dina Boluarte",
+            architecture="supervisor",
+            algorithm_mode=AlgorithmMode.HEURISTIC,
+            verbose=False,
+        )
+        result = use_case.execute(req)
+
+        self.assertIsNone(gateway.captured_config["judge"]["trained_model_path"])
+        self.assertEqual(result.architecture, "supervisor")
+        self.assertEqual(result.report_html_content, "<html>Supervisor OK</html>")
+        self.assertEqual(result.omitted_topics, ["Salud Pública y Hospitales"])
+        self.assertEqual(result.supervisor_metrics["total_cycles"], 8)
+
+    def test_clean_architecture_dependency_rule(self):
+        """Valida mediante AST la regla de dependencia de Clean Architecture entre capas."""
+
+        def _imported_targets(rel_path: str) -> list[str]:
+            source = (REPOSITORY_ROOT / rel_path).read_text(encoding="utf-8")
+            tree = ast.parse(source)
+            targets: list[str] = []
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    targets.extend(alias.name for alias in node.names)
+                elif isinstance(node, ast.ImportFrom):
+                    mod = node.module or ""
+                    targets.append(f"{'.' * node.level}{mod}")
+            return targets
+
+        forbidden_core = ("langgraph", "streamlit", "chromadb", "adapters", "infrastructure", "agentes", "orchestrator")
+        for core_file in (
+            "src/domain/entities.py",
+            "src/domain/interfaces.py",
+            "src/application/supervisor_policy.py",
+            "src/application/speech_analysis_use_case.py",
+        ):
+            imports = _imported_targets(core_file)
+            for mod in imports:
+                for forbidden in forbidden_core:
+                    self.assertNotIn(forbidden, mod, f"{core_file} no debe depender de '{forbidden}' ({mod})")
+
+        app_imports = _imported_targets("app.py")
+        for mod in app_imports:
+            for forbidden in ("langgraph", "chromadb", "src.orchestrator", "src.agentes", "src.infrastructure"):
+                self.assertNotIn(forbidden, mod, f"app.py no debe acoplarse directamente a '{forbidden}' ({mod})")
 
 
 if __name__ == "__main__":

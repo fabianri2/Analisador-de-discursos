@@ -1,8 +1,84 @@
 {
-  "video": "videos\\Discurso Dina Boluarte 30 de enero de 2023.srt",
+  "video": "videos/Discurso Dina Boluarte 30 de enero de 2023.srt",
   "speaker": "Dina Boluarte",
   "duration_seconds": 418.93,
   "transcription_source": "subtitles Discurso Dina Boluarte 30 de enero de 2023.srt",
+  "architecture": "supervisor",
+  "supervisor_metrics": {
+    "architecture": "supervisor",
+    "total_cycles": 7,
+    "workers_called": [
+      "ingestion_transcription",
+      "promise_extraction",
+      "linguistic_analysis",
+      "syntactic_analysis",
+      "factual_audit",
+      "judge_consolidation",
+      "report_generation"
+    ],
+    "critical_discrepancies_detected": 3,
+    "rechecks_requested": 0,
+    "final_verdict": "neutral",
+    "confidence_score": 0.8
+  },
+  "supervisor_trace": [
+    {
+      "cycle": 1,
+      "phase": "INITIALIZING",
+      "assigned_worker": "ingestion_transcription",
+      "rationale": "No se cuenta con transcripción ni segmentos. Delegar en especialista de Ingesta y Transcripción.",
+      "critical_alert": false,
+      "timestamp": 1794401457.092
+    },
+    {
+      "cycle": 2,
+      "phase": "EXTRACTING_PROMISES",
+      "assigned_worker": "promise_extraction",
+      "rationale": "Transcripción disponible. Delegar en especialista de Promesas para aislar compromisos verificables.",
+      "critical_alert": false,
+      "timestamp": 1794401457.101
+    },
+    {
+      "cycle": 3,
+      "phase": "ANALYZING_STYLE",
+      "assigned_worker": "linguistic_analysis",
+      "rationale": "Faltan marcadores léxicos LIWC. Delegar en especialista Lingüístico.",
+      "critical_alert": false,
+      "timestamp": 1794401457.111
+    },
+    {
+      "cycle": 4,
+      "phase": "ANALYZING_STYLE",
+      "assigned_worker": "syntactic_analysis",
+      "rationale": "Falta cálculo de opacidad sintáctica (Índice de Niebla). Delegar en especialista Sintáctico.",
+      "critical_alert": false,
+      "timestamp": 1794401457.384
+    },
+    {
+      "cycle": 5,
+      "phase": "AUDITING_FACTS",
+      "assigned_worker": "factual_audit",
+      "rationale": "Métricas estilísticas completas y 25 promesas aisladas. Delegar en especialista Factual RAG para contrastación regulatoria contra MEF/BCRP/JNE.",
+      "critical_alert": false,
+      "timestamp": 1794401457.393
+    },
+    {
+      "cycle": 6,
+      "phase": "CONSOLIDATING_VERDICT",
+      "assigned_worker": "judge_consolidation",
+      "rationale": "Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 3 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.",
+      "critical_alert": true,
+      "timestamp": 1794401476.081
+    },
+    {
+      "cycle": 7,
+      "phase": "GENERATING_REPORT",
+      "assigned_worker": "report_generation",
+      "rationale": "Veredicto emitido (neutral). Delegar en Agente Reportero para generar HTML y JSON.",
+      "critical_alert": false,
+      "timestamp": 1794401476.322
+    }
+  ],
   "verdict": {
     "method": "Algoritmo Heurístico Agéntico Multi-Modal",
     "opacity_index": 47.4,
@@ -920,36 +996,33 @@
   ],
   "logs": [
     "[Supervisor c1] -> ingestion_transcription: No se cuenta con transcripción ni segmentos. Delegar en especialista de Ingesta y Transcripción.",
-    "[supervisor] 0.00s",
+    "[supervisor] 0.02s",
     "[Transcription] 51 segmentos cargados desde Discurso Dina Boluarte 30 de enero de 2023.srt",
-    "[ingestion_transcription] 0.00s",
+    "[ingestion_transcription] 0.01s",
     "[Supervisor c2] -> promise_extraction: Transcripción disponible. Delegar en especialista de Promesas para aislar compromisos verificables.",
     "[supervisor] 0.00s",
     "[PromiseExtractor] 25 promesas y compromisos de Estado detectados.",
-    "[promise_extraction] 0.00s",
+    "[promise_extraction] 0.01s",
     "[Supervisor c3] -> linguistic_analysis: Faltan marcadores léxicos LIWC. Delegar en especialista Lingüístico.",
     "[supervisor] 0.00s",
     "[Linguistic] 749 palabras analizadas en categorías LIWC.",
-    "[linguistic_analysis] 0.03s",
+    "[linguistic_analysis] 0.27s",
     "[Supervisor c4] -> syntactic_analysis: Falta cálculo de opacidad sintáctica (Índice de Niebla). Delegar en especialista Sintáctico.",
     "[supervisor] 0.00s",
     "[Syntactic] Opacidad media Fog Index: 61.5/100",
-    "[syntactic_analysis] 0.00s",
+    "[syntactic_analysis] 0.01s",
     "[Supervisor c5] -> factual_audit: Métricas estilísticas completas y 25 promesas aisladas. Delegar en especialista Factual RAG para contrastación regulatoria contra MEF/BCRP/JNE.",
     "[supervisor] 0.00s",
     "[FactualAlignment] Cruce RAG MEF/BCRP + ChromaDB: discrepancia media 22.2/100, contraste político (3 izq / 3 der), sectores omitidos: Salud Pública y Hospitales, Desarrollo Territorial Andino y Regiones, Educación e Infraestructura Escolar, Reactivación Agraria e Hídrica.",
-    "[factual_audit] 1.25s",
+    "[factual_audit] 18.68s",
     "[Supervisor c6] -> judge_consolidation: Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 3 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.",
     "[supervisor] 0.00s",
     "[Juez] Orquestación cerrada por Algoritmo Heurístico Agéntico Multi-Modal: Índice=47.4 -> neutral",
-    "[judge_consolidation] 0.04s",
+    "[judge_consolidation] 0.23s",
     "[Supervisor c7] -> report_generation: Veredicto emitido (neutral). Delegar en Agente Reportero para generar HTML y JSON.",
     "[supervisor] 0.00s"
   ],
-  "errors": [
-    "Falla de inferencia en el modelo de Machine Learning: 'LogisticRegression' object has no attribute 'multi_class'"
-  ],
-  "architecture": "pipeline",
+  "errors": [],
   "plan_metrics": null,
   "plan": [],
   "methodology_warning": "Este reporte es una auditoría algorítmica de consistencia factual, presupuestal y de contraste mediático. Un índice de opacidad o desviación elevado indica que las afirmaciones macroeconómicas, jurídicas o sociales del ejecutivo presentan discrepancias estadísticas frente a las memorias anuales del BCRP, partidas del MEF y fuentes periodísticas contrastadas en ChromaDB. Los resultados sirven de apoyo para que el ciudadano saque sus propias conclusiones."

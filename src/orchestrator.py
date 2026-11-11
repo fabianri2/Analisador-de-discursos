@@ -132,11 +132,12 @@ def analyze_video_pipeline(video_path: str, config: Dict, output_dir: str = "res
     
     # Inicialización del diccionario con la clave exacta 'video' requerida por ingestion_agent.py
     state: SpeechAnalysisState = {
-        "video": str(video_path), 
+        "video": str(video_path),
         "speaker": speaker or Path(video_path).stem,
-        "working_dir": str(working_dir), 
+        "working_dir": str(working_dir),
         "config": config,
-        "logs": [], 
+        "architecture": architecture,
+        "logs": [],
         "errors": [],
     }
     
