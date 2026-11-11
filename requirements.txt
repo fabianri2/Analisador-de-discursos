@@ -18,3 +18,7 @@ imageio-ffmpeg>=0.5
 
 # Transcripción local (opcional si se usan subtítulos .srt/.vtt)
 faster-whisper>=1.1
+
+# Base de datos vectorial y extracción web
+chromadb>=0.5.0
+youtube-transcript-api>=0.6.2

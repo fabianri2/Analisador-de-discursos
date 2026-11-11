@@ -1,26 +1,27 @@
-"""Agente de Auditoría Factual (RAG): cruza afirmaciones del discurso con datos oficiales del MEF, BCRP y entidades del Estado."""
+"""Agente de Auditoría Factual (RAG): cruza afirmaciones del discurso con datos oficiales del MEF, BCRP y ChromaDB (espectro político y omisiones)."""
 from __future__ import annotations
 
+import os
 import re
 import unicodedata
 from collections import Counter
 from typing import Dict, List, Any
 import numpy as np
 
+try:
+    import chromadb
+except ImportError:
+    chromadb = None
+
 from ..state import SpeechAnalysisState
 from ..utilities import calculate_sigmoid
 
 AGENT_NAME = "FactualAlignment"
-
-# Una misma promesa suele repetirse a lo largo de un discurso. Para no contar nueve
-# veces la misma discrepancia, solo la primera mención de cada tema se reporta como
-# hallazgo crítico; las repeticiones conservan una señal atenuada.
 REITERATION_FACTOR = 0.45
+CHROMA_DB_PATH = os.path.join("data_storage", "vector_chroma")
+CHROMA_COLLECTION_NAME = "political_discourse_sources"
 
 # Base de conocimiento factual regulatoria y documental del Estado peruano (2023 - 2024).
-# Los keywords son frases específicas (no palabras sueltas como "orden" o "gasto"),
-# porque esos términos genéricos hacían que casi cualquier segmento se marcara como
-# discrepancia crítica frente al MEF/BCRP.
 FACTUAL_BENCHMARKS = [
     {
         "keywords": [
@@ -28,7 +29,7 @@ FACTUAL_BENCHMARKS = [
             "recorte del periodo", "recorto el periodo", "convoque a elecciones",
         ],
         "topic": "Cronograma Electoral y Mandato Presidencial",
-        "fact_target": 0.90,  # Alta discrepancia: Las elecciones prometidas para 2023 no se convocaron ni se realizaron.
+        "fact_target": 0.90,
         "source": "JNE / ONPE / Diario Oficial El Peruano (Registro de Comicios 2023)",
         "audit_note": "La promesa categórica de elecciones generales en 2023 y recorte de mandato no se concretó formalmente en el año fiscal auditado."
     },
@@ -64,6 +65,14 @@ FACTUAL_BENCHMARKS = [
         "audit_note": "Los registros oficiales constataron 49 civiles fallecidos en enfrentamientos y paralización de corredores viales clave."
     }
 ]
+
+# Sectores críticos que deben auditarse por omisión en discursos presidenciales
+CRITICAL_OMISSION_SECTORS = {
+    "Salud Pública y Hospitales": ["salud", "hospital", "posta", "essalud", "minsa", "medicamentos"],
+    "Desarrollo Territorial Andino y Regiones": ["sierra", "andina", "andes", "regiones", "descentralizacion", "provincias", "puno", "cusco", "ayacucho"],
+    "Educación e Infraestructura Escolar": ["educacion", "colegio", "escuela", "universidad", "docentes", "minedu"],
+    "Reactivación Agraria e Hídrica": ["agricultura", "agro", "riego", "sequia", "fertilizantes", "campesino"]
+}
 
 
 def _normalize_for_matching(raw_text: str) -> str:
@@ -108,20 +117,69 @@ def _map_segments_by_id(agent_metrics_block: Dict[str, Any]) -> Dict[int, Dict[s
     return {row["id"]: row for row in agent_metrics_block.get("by_segment", [])}
 
 
+def _get_chroma_collection():
+    """Connects safely to local ChromaDB persistence directory."""
+    if chromadb is None or not os.path.exists(CHROMA_DB_PATH):
+        return None
+    try:
+        client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+        return client.get_or_create_collection(name=CHROMA_COLLECTION_NAME)
+    except Exception:
+        return None
+
+
+def _query_spectrum_evidence(collection, query_text: str, spectrum: str, n_results: int = 2) -> List[Dict[str, Any]]:
+    """Queries ChromaDB filtering by political spectrum metadata ('izquierda' or 'derecha')."""
+    if collection is None or not query_text.strip():
+        return []
+    try:
+        results = collection.query(
+            query_texts=[query_text],
+            n_results=n_results,
+            where={"espectro": spectrum}
+        )
+        documents = results.get("documents", [[]])[0]
+        metadatas = results.get("metadatas", [[]])[0]
+        distances = results.get("distances", [[]])[0]
+
+        evidence_items = []
+        for doc, meta, dist in zip(documents, metadatas, distances):
+            evidence_items.append({
+                "excerpt": doc,
+                "source_channel": meta.get("fuente", "Fuente Web Indexada") if meta else "Fuente Web Indexada",
+                "spectrum": spectrum,
+                "similarity_score": round(float(1.0 / (1.0 + dist)), 4)
+            })
+        return evidence_items
+    except Exception:
+        return []
+
+
+def _detect_omitted_sectors(full_text: str) -> List[str]:
+    """Identifies critical national sectors absent from the entire speech."""
+    normalized_full = _normalize_for_matching(full_text)
+    omitted = []
+    for sector_label, keywords in CRITICAL_OMISSION_SECTORS.items():
+        if not any(_keyword_pattern(kw).search(normalized_full) for kw in keywords):
+            omitted.append(sector_label)
+    return omitted
+
+
 def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
     """
-    Main cross-modal validation node checking presidential speech statements against hard factual data.
-    Contrasts commitments with actual Year N+1 regulatory records from MEF, BCRP and official sources.
-
-    Regla de reporte: cada tema regulatorio genera UN hallazgo (en su primera mención).
-    Los segmentos que repiten el mismo tema quedan marcados como reiteración para no
-    duplicar la misma discrepancia en el reporte ni en el veredicto.
+    Main cross-modal validation node checking presidential speech statements against hard factual data
+    and cross-referencing political spectrum perspectives in ChromaDB.
     """
     sentiment_map = _map_segments_by_id(state.get("sentiment_metrics", {}))
     linguistic_map = _map_segments_by_id(state.get("linguistic_metrics", {}))
     speech_segments = state.get("segments", [])
 
-    # ---- Pase 1: un solo tema (el más crítico) por segmento ----
+    # Conexión a ChromaDB para contraste de espectros políticos
+    chroma_collection = _get_chroma_collection()
+    left_wing_evidence: List[Dict[str, Any]] = []
+    right_wing_evidence: List[Dict[str, Any]] = []
+
+    # Un solo tema (el más crítico) por segmento ----
     primary_benchmark_by_segment: Dict[int, Dict[str, Any] | None] = {}
     for segment in speech_segments:
         matched = _find_matching_benchmarks(segment.get("text", ""))
@@ -129,7 +187,7 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
             max(matched, key=lambda benchmark: benchmark["fact_target"]) if matched else None
         )
 
-    # ---- Pase 2: la primera mención de cada tema es el hallazgo que se reporta ----
+    # La primera mención de cada tema es el hallazgo que se reporta ----
     anchor_segment_by_topic: Dict[str, int] = {}
     for segment in speech_segments:
         benchmark = primary_benchmark_by_segment[segment["id"]]
@@ -153,7 +211,6 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
             "end": segment.get("end", 0.0),
         }
 
-        # 1. Factores lingüísticos y emocionales que agravan la opacidad (Vrij, 2008)
         linguistic_features = linguistic_map.get(segment_id, {})
         hedges_ratio = linguistic_features.get("hedges", 0.0) / 100.0
         assertives_ratio = linguistic_features.get("truth_assertives", 0.0) / 100.0
@@ -163,24 +220,32 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
 
         if primary_benchmark:
             base_discrepancy = primary_benchmark["fact_target"]
-            # Si se usan afirmaciones excesivas ("les aseguro", "la verdad") o evasiones, la brecha factual se acentúa
             discrepancy_modifier = (assertives_ratio * 0.4) + (hedges_ratio * 0.3)
             raw_discrepancy = float(np.clip(base_discrepancy + discrepancy_modifier, 0.0, 0.98))
             final_segment_discrepancy = raw_discrepancy if is_anchor else float(
                 np.clip(raw_discrepancy * REITERATION_FACTOR, 0.05, 0.60)
             )
-
             row_result["topic"] = primary_benchmark["topic"]
             row_result["topic_key"] = _slugify_topic(primary_benchmark["topic"])
             row_result["source"] = primary_benchmark["source"]
             row_result["audit_note"] = primary_benchmark["audit_note"]
             row_result["is_primary"] = is_anchor
             row_result["mention_count"] = int(topic_mentions[primary_benchmark["topic"]])
+
+            # Consulta cruzada en ChromaDB solo en la primera mención (anchor) para optimizar velocidad
+            if is_anchor and chroma_collection is not None:
+                left_hits = _query_spectrum_evidence(chroma_collection, segment_text, "izquierda", n_results=1)
+                right_hits = _query_spectrum_evidence(chroma_collection, segment_text, "derecha", n_results=1)
+                for hit in left_hits:
+                    hit["related_topic"] = primary_benchmark["topic"]
+                    left_wing_evidence.append(hit)
+                for hit in right_hits:
+                    hit["related_topic"] = primary_benchmark["topic"]
+                    right_wing_evidence.append(hit)
+
             if not is_anchor:
                 row_result["reiteration_of"] = anchor_segment_by_topic[primary_benchmark["topic"]]
         else:
-            # Segmento sin contraste directo con el MEF/BCRP (introducciones, saludos protocolares)
-            # Desvío residual base bajo (12% - 25%)
             final_segment_discrepancy = float(np.clip(0.12 + (hedges_ratio * 0.35), 0.05, 0.35))
             row_result["topic"] = "Discurso General / Protocolar"
             row_result["source"] = "Archivo Presidencial"
@@ -194,6 +259,10 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
 
         segments_output.append(row_result)
         factual_discrepancies_timeline.append(final_segment_discrepancy)
+
+    # Auditoría de omisiones críticas en todo el discurso ----
+    full_speech_text = state.get("transcribed_text") or " ".join(s.get("text", "") for s in speech_segments)
+    omitted_topics = _detect_omitted_sectors(full_speech_text)
 
     discrepancy_array = np.array(factual_discrepancies_timeline, dtype=float)
     evaluated_count = len(discrepancy_array)
@@ -210,23 +279,33 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
         "unique_topics_count": len(anchor_segment_by_topic),
         "critical_topics_count": len(critical_topics),
         "repeated_mentions_count": sum(count - 1 for count in topic_mentions.values() if count > 1),
+        "chroma_left_hits": len(left_wing_evidence),
+        "chroma_right_hits": len(right_wing_evidence),
+        "omitted_sectors_count": len(omitted_topics),
     }
 
     print(
-        f"  → [{AGENT_NAME} Agent] Validación cruzada completada. Segmentos evaluados contra MEF/BCRP: "
-        f"{evaluated_count} (Temas detectados: {len(anchor_segment_by_topic)}, "
-        f"críticos: {summary_metrics['critical_topics_count']}, "
-        f"menciones repetidas agrupadas: {summary_metrics['repeated_mentions_count']})"
+        f"  → [{AGENT_NAME} Agent] Validación cruzada completada. Segmentos: {evaluated_count} | "
+        f"Temas: {len(anchor_segment_by_topic)} | Contraste ChromaDB (Izq/Der): "
+        f"{len(left_wing_evidence)}/{len(right_wing_evidence)} | Omisiones: {len(omitted_topics)}"
     )
 
     return {
         "factual_rag_metrics": {
             "by_segment": segments_output,
             "summary": summary_metrics,
-            "markers_direction": {"factual_discrepancy": +1}
+            "markers_direction": {"factual_discrepancy": +1},
+            "left_wing_evidence": left_wing_evidence,
+            "right_wing_evidence": right_wing_evidence,
+            "omitted_topics": omitted_topics,
         },
+        "left_wing_evidence": left_wing_evidence,
+        "right_wing_evidence": right_wing_evidence,
+        "omitted_topics": omitted_topics,
         "logs": [
-            f"[{AGENT_NAME}] Cruce RAG con MEF/BCRP: discrepancia media de {mean_discrepancy * 100:.1f}/100, "
-            f"{len(anchor_segment_by_topic)} temas únicos y {summary_metrics['repeated_mentions_count']} repeticiones agrupadas."
+            f"[{AGENT_NAME}] Cruce RAG MEF/BCRP + ChromaDB: discrepancia media {mean_discrepancy * 100:.1f}/100, "
+            f"contraste político ({len(left_wing_evidence)} izq / {len(right_wing_evidence)} der), "
+            f"sectores omitidos: {', '.join(omitted_topics) if omitted_topics else 'Ninguno'}."
         ]
     }
+

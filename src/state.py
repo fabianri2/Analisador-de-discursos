@@ -51,3 +51,9 @@ class SpeechAnalysisState(TypedDict, total=False):
     verdict: Dict[str, Any]
     final_verdict: str
     report: Dict[str, Any]
+
+    # Análisis Cruzado de Sesgos y Omisiones (ChromaDB)
+    left_wing_evidence: List[Dict[str, Any]]
+    right_wing_evidence: List[Dict[str, Any]]
+    omitted_topics: List[str]
+    
