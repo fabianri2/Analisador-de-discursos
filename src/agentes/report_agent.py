@@ -13,13 +13,12 @@ from ..utilities import round_nested_data
 
 AGENT_NAME = "Reportero"
 
-# Redefinición académica enfocada en la auditoría gubernamental (Adiós biometría)
 METRIC_WARNING = (
-    "Este reporte es una auditoría algorítmica de consistencia factual y presupuestal. "
+    "Este reporte es una auditoría algorítmica de consistencia factual, presupuestal y de contraste mediático. "
     "Un índice de opacidad o desviación elevado indica que las afirmaciones macroeconómicas, "
     "jurídicas o sociales del ejecutivo presentan discrepancias estadísticas frente a las "
-    "memorias anuales del BCRP y las partidas presupuestales de ejecución del MEF. Los resultados "
-    "deben utilizarse como apoyo para la fiscalización documental, no como un dictamen judicial definitivo."
+    "memorias anuales del BCRP, partidas del MEF y fuentes periodísticas contrastadas en ChromaDB. "
+    "Los resultados sirven de apoyo para que el ciudadano saque sus propias conclusiones."
 )
 
 FAMILY_LABELS = {
@@ -34,6 +33,23 @@ FAMILY_LABELS = {
 def _convert_seconds_to_mmss(timestamp_seconds: float) -> str:
     """Formats float numerical seconds into a standard MM:SS string."""
     return f"{int(timestamp_seconds // 60):02d}:{int(timestamp_seconds % 60):02d}"
+
+
+def _resolve_real_duration(state: Any, data_rows: List[Dict]) -> float:
+    """Computes actual speech duration from segments if metadata duration is missing or default."""
+    raw_duration = float(state.get("duration", 0.0)) if isinstance(state, dict) else 0.0
+    if raw_duration > 0.0 and raw_duration != 72.0:
+        return raw_duration
+    segments = state.get("segments", []) if isinstance(state, dict) else []
+    if segments:
+        max_end = max(float(s.get("end", 0.0)) for s in segments)
+        if max_end > 0.0:
+            return max_end
+    if data_rows:
+        max_row_end = max(float(r.get("end", 0.0)) for r in data_rows)
+        if max_row_end > 0.0:
+            return max_row_end
+    return 72.0
 
 
 def _generate_timeline_svg(data_rows: List[Dict], total_duration: float, truth_threshold: float, deviation_threshold: float) -> str:
@@ -51,20 +67,18 @@ def _generate_timeline_svg(data_rows: List[Dict], total_duration: float, truth_t
             continue
             
         factual_val = row.get("families", {}).get("factual_rag", 0.0)
-        # Resaltado forense: si tiene desvío factual crítico o índice general elevado
         visual_score = max(index_value, factual_val if factual_val >= 60.0 else index_value)
         bar_class = "b-alto" if visual_score > deviation_threshold else ("b-medio" if visual_score >= truth_threshold else "b-bajo")
         
-        # Corrección crítica: Sincronizado con llaves en inglés ('start', 'end') de Whisper
-        x0 = get_x(row["start"])
-        x1 = get_x(row["end"])
+        x0 = get_x(row.get("start", 0.0))
+        x1 = get_x(row.get("end", 0.0))
         
         bar_height = max(5.0, get_y(0) - get_y(visual_score))
         bar_y = get_y(visual_score)
         svg_bars.append(
             f'<rect class="{bar_class}" x="{x0:.1f}" y="{bar_y:.1f}" '
             f'width="{max(2.0, x1 - x0 - 1):.1f}" height="{bar_height:.1f}">'
-            f'<title>Seg. {row["id"]} ({_convert_seconds_to_mmss(row["start"])}): Índice {index_value:.0f}/100 | Factual {factual_val:.0f}/100</title></rect>'
+            f'<title>Seg. {row["id"]} ({_convert_seconds_to_mmss(row.get("start", 0.0))}): Índice {index_value:.0f}/100 | Factual {factual_val:.0f}/100</title></rect>'
         )
         
     timeline_markers = "".join(
@@ -81,9 +95,72 @@ def _generate_timeline_svg(data_rows: List[Dict], total_duration: float, truth_t
 {"".join(svg_bars)}{timeline_markers}</svg>"""
 
 
+def _build_political_spectrum_section(state: Any) -> str:
+    """Renders side-by-side ChromaDB evidence contrasting left-wing and right-wing sources."""
+    if not isinstance(state, dict):
+        return ""
+    rag_metrics = state.get("factual_rag_metrics") or {}
+    left_evidence = state.get("left_wing_evidence") or rag_metrics.get("left_wing_evidence") or []
+    right_evidence = state.get("right_wing_evidence") or rag_metrics.get("right_wing_evidence") or []
+
+
+    if not left_evidence and not right_evidence:
+        return """<section class="card">
+    <h2>Contraste de Espectro Político (ChromaDB Web RAG)</h2>
+    <p class="mut">No se recuperaron posturas externas indexadas en ChromaDB para los temas de este discurso.</p>
+</section>"""
+
+    left_cards = "".join(
+        f'<div class="spec-item"><span class="badge-izq">{html.escape(str(item.get("source_channel", "Fuente Crítica")))}</span>'
+        f'<div class="t" style="margin-top:4px">Tema: <b>{html.escape(str(item.get("related_topic", "General")))}</b> · Relevancia: {float(item.get("similarity_score", 0))*100:.0f}%</div>'
+        f'<p style="margin:6px 0 0">“{html.escape(str(item.get("excerpt", "")))}”</p></div>'
+        for item in left_evidence
+    ) or '<p class="mut">Sin registros en el espectro de izquierda.</p>'
+
+    right_cards = "".join(
+        f'<div class="spec-item"><span class="badge-der">{html.escape(str(item.get("source_channel", "Prensa Tradicional")))}</span>'
+        f'<div class="t" style="margin-top:4px">Tema: <b>{html.escape(str(item.get("related_topic", "General")))}</b> · Relevancia: {float(item.get("similarity_score", 0))*100:.0f}%</div>'
+        f'<p style="margin:6px 0 0">“{html.escape(str(item.get("excerpt", "")))}”</p></div>'
+        for item in right_evidence
+    ) or '<p class="mut">Sin registros en el espectro de derecha.</p>'
+
+    return f"""<section class="card">
+    <h2>Contraste de Espectro Político (ChromaDB: Izquierda vs. Derecha)</h2>
+    <p class="mut" style="margin:0 0 12px">Recuperación vectorial cruzada de medios independientes, análisis en YouTube y prensa tradicional para contraste ciudadano.</p>
+    <div class="spectrum-grid">
+        <div class="spectrum-col">
+            <h3 style="margin:0 0 8px;font-size:15px;color:var(--bad)">Perspectiva Izquierda / Oposición Crítica</h3>
+            {left_cards}
+        </div>
+        <div class="spectrum-col">
+            <h3 style="margin:0 0 8px;font-size:15px;color:var(--ac)">Perspectiva Derecha / Prensa Oficialista</h3>
+            {right_cards}
+        </div>
+    </div>
+</section>"""
+
+
+def _build_omitted_sectors_section(state: Any) -> str:
+    """Renders critical national sectors omitted across the entire speech."""
+    if not isinstance(state, dict):
+        return ""
+    rag_metrics = state.get("factual_rag_metrics") or {}
+    omitted = state.get("omitted_topics") or rag_metrics.get("omitted_topics") or []
+
+    if not omitted:
+        return """<section class="card">
+    <h2>Auditoría de Cobertura y Omisiones Sectoriales</h2>
+    <p class="mut" style="margin:0">El discurso abordó los sectores críticos monitoreados (Salud, Regiones Andinas, Educación y Agro).</p>
+</section>"""
+
+    pills = "".join(f'<span class="omit-pill">⚠ {html.escape(str(topic))}</span>' for topic in omitted)
+    return f"""<section class="card aviso" style="border-left-color:var(--bad)">
+    <h2>Auditoría de Omisiones Críticas en el Discurso</h2>
+    <p class="mut" style="margin:0 0 10px">Los siguientes sectores prioritarios del país <b>no fueron mencionados</b> en ningún segmento de la intervención:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">{pills}</div>
+</section>"""
 def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
     """Assembles the complete forensic static HTML report interface using unified English keys."""
-    # Extraemos la configuración de forma segura ante diccionarios reducidos
     try:
         judge_config = state["config"]["judge"]
     except Exception:
@@ -114,6 +191,9 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
     else:
         display_value = f"{consistency_index:.0f}%" if consistency_index >= 1.0 else (f"{deviation_probability * 100:.0f}%" if deviation_probability else "0%")
 
+    # Detección dinámica del método real usado por el juez (evita texto estático erróneo)
+    classifier_method = html.escape(str(verdict.get("method", "Algoritmo Heurístico Agéntico Multi-Modal")))
+
     # Componente: Promedio por familia de agentes
     family_metrics_html = []
     for family_key, label_name in FAMILY_LABELS.items():
@@ -125,7 +205,7 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
                 f'<i style="width:{mean_value:.0f}%"></i></div><b>{mean_value:.0f}</b></div>'
             )
 
-    # Componente: un hallazgo por tema regulatorio (sin repetir la misma discrepancia)
+    # Componente: un hallazgo por tema regulatorio
     critical_segments_html = []
     critical_findings = verdict.get("critical_findings") or []
     critical_topics_by_segment = {finding["segment_id"]: finding for finding in critical_findings}
@@ -158,7 +238,6 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
                 f'<p class="det" style="color:var(--bad);margin:4px 0 0"><b>Hallazgo RAG ({html.escape(source_short)}):</b> {det_note}</p></li>'
             )
     else:
-        # Compatibilidad con veredictos antiguos que solo traían la lista de ids
         for segment_id in verdict.get("critical_segments", []):
             row_data = next((x for x in data_rows if x["id"] == segment_id), None)
             segment_data = speech_segments.get(segment_id) if speech_segments else None
@@ -183,7 +262,7 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
                     f'<p class="det" style="color:var(--bad);margin:4px 0 0"><b>Hallazgo RAG (MEF/BCRP/JNE):</b> {det_note}</p></li>'
                 )
 
-    # Componente: Tabla secuencial completa (Sincronizada con llaves 'start', 'text')
+    # Componente: Tabla secuencial completa
     table_rows_html = []
     for row in data_rows:
         segment_data = speech_segments.get(row["id"]) if speech_segments else None
@@ -211,7 +290,7 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
             f'<td>{finding_cell}</td><td>{escaped_text}</td></tr>'
         )
 
-    # Componente: plan de verificación (solo cuando se usa la arquitectura Plan-and-Execute)
+    # Componente: plan de verificación
     plan_metrics = state.get("plan_metrics") if isinstance(state, dict) else None
     plan_section_html = ""
     if plan_metrics:
@@ -233,27 +312,42 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
 </section>
 """
 
-    execution_logs = "".join(f"<li>{html.escape(log)}</li>" for log in state.get("logs", [])) if isinstance(state, dict) else ""
+    raw_logs = state.get("logs", []) if isinstance(state, dict) else []
+    formatted_logs = []
+    for entry in raw_logs:
+        text_entry = str(entry)
+        if text_entry.strip().endswith("0.00s"):
+            continue
+        escaped_entry = html.escape(text_entry)
+        if text_entry.startswith("[Supervisor"):
+            styled = f'<span class="log-sup">{escaped_entry}</span>'
+        elif any(tag in text_entry for tag in ["[FactualAlignment]", "[Juez]", "[PromiseExtractor]", "[Transcription]", "[Linguistic]", "[Syntactic]"]):
+            styled = f'<span class="log-agent">{escaped_entry}</span>'
+        else:
+            styled = escaped_entry
+        formatted_logs.append(f'<li class="log-item"><span>{styled}</span></li>')
+    execution_logs = "".join(formatted_logs)
     execution_errors = "".join(f"<li>{html.escape(err)}</li>" for err in state.get("errors", [])) if isinstance(state, dict) else ""
+
     
-    # SALVAGUARDA DE CABECERA: Control seguro contra el KeyError 'video'
     speaker_name = html.escape(state.get("speaker", "Desconocido")) if isinstance(state, dict) else "Desconocido"
     video_name_display = "discurso.mp4"
     if isinstance(state, dict) and "video" in state:
         video_name_display = Path(state["video"]).name
         
     confidence_text = f"{verdict.get('confidence', 0.9) * 100:.0f}%"
-    video_duration = state.get("duration", 72.0) if isinstance(state, dict) else 72.0
+    video_duration = _resolve_real_duration(state, data_rows)
 
     missing_banner_html = ""
     if transcription_missing:
         missing_banner_html = (
             '<section class="card aviso" style="border-left-color:var(--bad)">'
             '<b>Sin transcripción:</b> <span class="mut">No se pudo convertir el audio a texto, '
-            'así que el índice y el dictamen <b>no evalúan el contenido</b> del discurso. '
-            'Revisa las “Alertas de Degradación Controlada” al final del reporte '
-            '(ffmpeg y modelo de Whisper).</span></section>'
+            'así que el índice y el dictamen <b>no evalúan el contenido</b> del discurso.</span></section>'
         )
+
+    omitted_section_html = _build_omitted_sectors_section(state)
+    spectrum_section_html = _build_political_spectrum_section(state)
 
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -272,9 +366,6 @@ h1{{font-size:24px;margin:0 0 4px}}h2{{font-size:17px;margin:0 0 12px}}
 .cifra{{font-size:54px;font-weight:700;line-height:1}}
 .etq{{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:600;margin-top:8px}}
 .verdad{{color:var(--ok)}}.engano{{color:var(--bad)}}.neutro{{color:var(--mid)}}
-.etq.verdad{{background:color-mix(in srgb,var(--ok) 14%,transparent)}}
-.etq.engano{{background:color-mix(in srgb,var(--bad) 14%,transparent)}}
-.etq.neutro{{background:color-mix(in srgb,var(--mid) 16%,transparent)}}
 .fam{{display:grid;grid-template-columns:180px 1fr 36px;gap:10px;align-items:center;margin:8px 0}}
 .barra{{height:8px;background:var(--ln);border-radius:4px;overflow:hidden}}
 .barra i{{display:block;height:100%;background:var(--ac)}}
@@ -289,23 +380,40 @@ ul{{padding-left:20px}}li{{margin-bottom:12px}}.t{{font-size:13px;color:var(--mu
 .tema{{color:var(--ac)}}.rep{{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;
 font-size:11px;background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}}
 .aviso{{border-left:4px solid var(--mid)}}
+.spectrum-grid{{display:grid;grid-template-columns:1fr 1fr;gap:16px}}
+.spectrum-col{{background:var(--bg);padding:14px;border-radius:8px;border:1px solid var(--ln)}}
+.spec-item{{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--ln)}}
+.spec-item:last-child{{border-bottom:none;margin-bottom:0;padding-bottom:0}}
+.badge-izq{{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}}
+.badge-der{{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:color-mix(in srgb,var(--ac) 15%,transparent);color:var(--ac)}}
+.omit-pill{{display:inline-block;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}}
+.log-list{{list-style:none;padding:0;margin:12px 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}}
+.log-item{{padding:6px 10px;border-bottom:1px solid var(--ln);display:flex;justify-content:space-between;gap:12px;align-items:baseline}}
+.log-item:last-child{{border-bottom:none}}
+.log-sup{{color:var(--ac);font-weight:600}}
+.log-agent{{color:var(--ok);font-weight:600}}
+.log-time{{color:var(--mut);font-size:11px;white-space:nowrap}}
 details summary{{cursor:pointer;font-weight:600}}
-@media (max-width:600px){{.hero{{grid-template-columns:1fr}}.cifra{{font-size:44px}}}}
+@media (max-width:700px){{.hero,.spectrum-grid{{grid-template-columns:1fr}}.cifra{{font-size:44px}}}}
 </style></head><body><main>
 <h1>Reporte Forense Agéntico: {speaker_name}</h1>
-<div class="mut">Archivo original: {html.escape(video_name_display)} · Duración: {_convert_seconds_to_mmss(video_duration)} · Ejecutado el {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
+<div class="mut">Archivo original: {html.escape(video_name_display)} · Duración real: {_convert_seconds_to_mmss(video_duration)} · Ejecutado el {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
 
 <section class="card hero">
     <div class="cifra {ui_theme}">{display_value}</div>
     <div>
         <h2>Dictamen General: <span class="{ui_theme}">{ui_title_label}</span></h2>
-        <p class="mut" style="margin:0">Confianza del sistema: {confidence_text} · Clasificador: Random Forest (Agéntico)</p>
+        <p class="mut" style="margin:0">Confianza del sistema: {confidence_text} · Método: {classifier_method}</p>
     </div>
 </section>
 {missing_banner_html}
 <section class="card aviso">
     <b>Metodología de Lectura Regulatoria:</b> <span class="mut">{METRIC_WARNING}</span>
 </section>
+
+{omitted_section_html}
+
+{spectrum_section_html}
 
 <section class="card">
     <h2>Índice Medio por Familias de Agentes</h2>
@@ -314,7 +422,7 @@ details summary{{cursor:pointer;font-weight:600}}
 
 <section class="card">
     <h2>Línea de Tiempo de Consistencia Factual</h2>
-    {_generate_timeline_svg(data_rows, state.get('duration', 600.0), judge_config['truth_threshold'], judge_config['deviation_threshold'])}
+    {_generate_timeline_svg(data_rows, video_duration, judge_config['truth_threshold'], judge_config['deviation_threshold'])}
     <div class="ley" style="margin-top:10px">
         <span><i style="background:var(--ok)"></i>Consistente</span>
         <span><i style="background:var(--mid)"></i>Desviación Moderada</span>
@@ -337,7 +445,7 @@ details summary{{cursor:pointer;font-weight:600}}
 
 <section class="card">
     <details><summary>Bitácora de Ejecución del Sistema (LangGraph Logs)</summary>
-    <ul>{execution_logs}</ul>
+    <ul class="log-list">{execution_logs}</ul>
     {f'<h3>Alertas de Degradación Controlada</h3><ul>{execution_errors}</ul>' if execution_errors else ''}
     </details>
 </section>
@@ -346,24 +454,27 @@ details summary{{cursor:pointer;font-weight:600}}
 
 def report_generator_agent(state: Any) -> dict:
     """Main function entry point for compiling the analytical HTML asset inside the working directory."""
-    # Extraemos de forma segura el bloque de veredictos inyectado por el nodo anterior
     verdict_data = {}
     if isinstance(state, dict):
         verdict_data = state.get("verdict", {})
         
-    # Reconstrucción de la configuración por defecto para evitar caídas de renderizado
     if "config" not in state or not isinstance(state["config"], dict):
         state = dict(state)
         state["config"] = {
             "judge": {"truth_threshold": 40.0, "deviation_threshold": 65.0}
         }
     
+    real_duration = _resolve_real_duration(state, verdict_data.get("by_segment", []))
+
     compiled_json_data = {
         "video": state.get("video", "videos/discurso.mp4"), 
         "speaker": state.get("speaker", "Desconocido"),
-        "duration_seconds": state.get("duration", 72.0),
+        "duration_seconds": real_duration,
         "transcription_source": state.get("transcription_source", "fallback"),
         "verdict": {k: v for k, v in verdict_data.items() if k != "by_segment"},
+        "left_wing_evidence": state.get("left_wing_evidence", []),
+        "right_wing_evidence": state.get("right_wing_evidence", []),
+        "omitted_topics": state.get("omitted_topics", []),
         "segments": [{**s, **{"index": f.get("index", 0.0), "families": f.get("families", {}), "es_linea_base": f.get("es_linea_base", False)}}
                      for s, f in zip(state.get("segments", []), verdict_data.get("by_segment", []))],
         "logs": state.get("logs", []),
