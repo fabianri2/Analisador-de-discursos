@@ -78,6 +78,43 @@ def ingestion_agent(state: Any) -> dict:
     if not Path(video_source).exists():
         raise FileNotFoundError(f"Error de Ingesta: No existe el archivo de video especificado: {video_source}")
 
+    # Mapeo seguro de configuración
+    try:
+        sampling_rate = state["config"]["audio"]["sampling_rate"]
+        working_dir_base = state.get("working_dir", "results")
+    except (KeyError, TypeError):
+        sampling_rate = 16000
+        working_dir_base = "results"
+
+    # Entrada de solo subtítulos (.srt/.vtt): no hay audio que extraer.
+    # La transcripción ya sabe leer el archivo, así que la ingesta solo calcula la duración.
+    source_path = Path(video_source)
+    if source_path.suffix.lower() in {".srt", ".vtt"}:
+        from .transcription_agent import _read_local_subtitles
+
+        working_directory = Path(working_dir_base)
+        working_directory.mkdir(parents=True, exist_ok=True)
+        segments = _read_local_subtitles(source_path)
+        duration_seconds = float(segments[-1]["end"]) if segments else 0.0
+        print(
+            f"  → [{AGENT_NAME} Agent] Entrada de subtítulos validada: "
+            f"{len(segments)} segmentos, duración {duration_seconds:.1f}s."
+        )
+        return {
+            "audio": None,
+            "duration": duration_seconds,
+            "fps": 0.0,
+            "metadata": {
+                "has_video_track": False,
+                "has_audio_track": False,
+                "format_name": "subtitle",
+            },
+            "logs": [
+                f"[{AGENT_NAME}] Subtítulos {source_path.name}: {len(segments)} segmentos, "
+                f"duración {duration_seconds:.1f}s."
+            ],
+        }
+
     ffmpeg_binary = _resolve_ffmpeg_binary()
     if ffmpeg_binary is None:
         raise RuntimeError(
@@ -86,14 +123,6 @@ def ingestion_agent(state: Any) -> dict:
         )
     ffprobe_binary = shutil.which("ffprobe")
 
-    # Mapeo seguro de configuración
-    try:
-        sampling_rate = state["config"]["audio"]["sampling_rate"]
-        working_dir_base = state.get("working_dir", "results")
-    except (KeyError, TypeError):
-        sampling_rate = 16000
-        working_dir_base = "results"
-    
     working_directory = Path(working_dir_base)
     working_directory.mkdir(parents=True, exist_ok=True)
     audio_output_path = working_directory / "audio.wav"
