@@ -171,6 +171,8 @@ def compile_global_features_vector(state: Any, rows: List[Dict] | None = None) -
 def _load_trained_classifier_model(config: Dict[str, Any]):
     """Safely handles file system IO to un-pickle the serialized joblib pipeline."""
     model_path_str = config.get("trained_model_path", "models/classifier.joblib")
+    if not model_path_str:
+        return None
     model_path = Path(model_path_str)
     full_path = model_path if model_path.is_absolute() else REPOSITORY_ROOT / model_path
     if not full_path.exists():

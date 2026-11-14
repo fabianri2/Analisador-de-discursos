@@ -57,29 +57,35 @@ class SupervisorAdapter:
             "logs": [f"[Supervisor c{cycle}] -> {directive.next_worker.value}: {directive.rationale}"],
         }
 
-        # Si el supervisor declara la misión completada, consolidamos las métricas auditables
-        if directive.next_worker == WorkerType.FINISH:
-            workers_sequence = [t["assigned_worker"] for t in trace if t["assigned_worker"] != "FINISH"]
-            criticals = 0
-            factual_metrics = state.get("factual_rag_metrics") or {}
-            if "summary" in factual_metrics:
-                criticals = factual_metrics["summary"].get("critical_segments_count", 0)
-
-            verdict_val = state.get("verdict", {}).get("label")
-            conf_val = state.get("verdict", {}).get("confidence", 0.0)
-
-            metrics = SupervisorMetrics(
-                architecture="supervisor",
-                total_cycles=len(trace),
-                workers_called=workers_sequence,
-                critical_discrepancies_detected=criticals,
-                rechecks_requested=0,
-                final_verdict=verdict_val,
-                confidence_score=conf_val,
-            )
-            updates["supervisor_metrics"] = metrics.to_dict()
+        # Consolidamos métricas auditables antes de generar el reporte y al cerrar en FINISH,
+        # para que report.html y result.json reflejen la trazabilidad completa del Supervisor.
+        if directive.next_worker in (WorkerType.REPORT_GENERATION, WorkerType.FINISH):
+            updates["supervisor_metrics"] = self._compile_supervisor_metrics(state, trace)
 
         return updates
+
+    @staticmethod
+    def _compile_supervisor_metrics(state: Dict[str, Any], trace: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Construye la estructura auditable SupervisorMetrics a partir del trazo acumulado."""
+        workers_sequence = [t["assigned_worker"] for t in trace if t["assigned_worker"] != "FINISH"]
+        criticals = 0
+        factual_metrics = state.get("factual_rag_metrics") or {}
+        if "summary" in factual_metrics:
+            criticals = factual_metrics["summary"].get("critical_segments_count", 0)
+
+        verdict_val = state.get("verdict", {}).get("label")
+        conf_val = state.get("verdict", {}).get("confidence", 0.0)
+
+        metrics = SupervisorMetrics(
+            architecture="supervisor",
+            total_cycles=len(trace),
+            workers_called=workers_sequence,
+            critical_discrepancies_detected=criticals,
+            rechecks_requested=0,
+            final_verdict=verdict_val,
+            confidence_score=conf_val,
+        )
+        return metrics.to_dict()
 
 
 # Instancia por defecto del adaptador

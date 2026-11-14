@@ -159,6 +159,80 @@ def _build_omitted_sectors_section(state: Any) -> str:
     <p class="mut" style="margin:0 0 10px">Los siguientes sectores prioritarios del país <b>no fueron mencionados</b> en ningún segmento de la intervención:</p>
     <div style="display:flex;flex-wrap:wrap;gap:8px">{pills}</div>
 </section>"""
+
+
+def _resolve_architecture(state: Any) -> str:
+    """Determines the active execution architecture cleanly from state or metrics."""
+    if not isinstance(state, dict):
+        return "pipeline"
+    if state.get("architecture"):
+        return str(state["architecture"])
+    sup_metrics = state.get("supervisor_metrics") or {}
+    if isinstance(sup_metrics, dict) and sup_metrics.get("architecture"):
+        return str(sup_metrics["architecture"])
+    plan_metrics = state.get("plan_metrics") or {}
+    if isinstance(plan_metrics, dict) and plan_metrics.get("architecture"):
+        return str(plan_metrics["architecture"])
+    if state.get("supervisor_trace"):
+        return "supervisor"
+    return "pipeline"
+
+
+def _build_supervisor_section(state: Any) -> str:
+    """Renders the Supervisor Multi-Agent governance summary and cycle-by-cycle trace."""
+    if not isinstance(state, dict):
+        return ""
+    trace = state.get("supervisor_trace") or []
+    metrics = state.get("supervisor_metrics") or {}
+    if not trace and not metrics:
+        return ""
+
+    workers_called = metrics.get("workers_called") or [
+        t.get("assigned_worker") for t in trace if t.get("assigned_worker") and t.get("assigned_worker") != "FINISH"
+    ]
+    total_cycles = metrics.get("total_cycles") or len(trace)
+    criticals = metrics.get("critical_discrepancies_detected")
+    if criticals is None:
+        rag_summary = (state.get("factual_rag_metrics") or {}).get("summary", {})
+        criticals = rag_summary.get("critical_segments_count", 0)
+
+    trace_rows_html_parts = []
+    for step in trace:
+        is_crit = bool(step.get("critical_alert"))
+        row_cls = "alto" if is_crit else ""
+        alert_badge = '<span class="badge-izq">⚠ Crítica</span>' if is_crit else '<span class="badge-der">Normal</span>'
+        trace_rows_html_parts.append(
+            f'<tr class="{row_cls}">'
+            f'<td>{html.escape(str(step.get("cycle", "")))}</td>'
+            f'<td><span class="sup-phase">{html.escape(str(step.get("phase", "")))}</span></td>'
+            f'<td><b>{html.escape(str(step.get("assigned_worker", "")))}</b></td>'
+            f'<td>{html.escape(str(step.get("rationale", "")))}</td>'
+            f'<td>{alert_badge}</td>'
+            f'</tr>'
+        )
+    trace_rows_html = "".join(trace_rows_html_parts)
+
+    table_html = (
+        f'<table><thead><tr><th>Ciclo</th><th>Fase</th><th>Especialista Asignado</th>'
+        f'<th>Directiva del Supervisor</th><th>Alerta</th></tr></thead>'
+        f'<tbody>{trace_rows_html}</tbody></table>'
+        if trace_rows_html else '<p class="mut">Sin traza de ciclos registrada.</p>'
+    )
+
+    return f"""<section class="card">
+    <h2>Orquestación Multi-Agente con Supervisor (Clean Architecture)</h2>
+    <p class="mut" style="margin:0 0 10px">Topología en estrella (Hub-and-Spoke) bajo separación de capas Dominio → Aplicación → Adaptadores → Infraestructura.</p>
+    <div class="sup-kpis">
+        <div class="sup-kpi"><span>Ciclos de control</span><b>{total_cycles}</b></div>
+        <div class="sup-kpi"><span>Especialistas convocados</span><b>{len(workers_called)}</b></div>
+        <div class="sup-kpi"><span>Alertas críticas</span><b>{criticals}</b></div>
+        <div class="sup-kpi"><span>Patrón</span><b>Supervisor</b></div>
+    </div>
+    {table_html}
+</section>
+"""
+
+
 def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
     """Assembles the complete forensic static HTML report interface using unified English keys."""
     try:
@@ -348,6 +422,13 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
 
     omitted_section_html = _build_omitted_sectors_section(state)
     spectrum_section_html = _build_political_spectrum_section(state)
+    supervisor_section_html = _build_supervisor_section(state)
+    active_arch = _resolve_architecture(state)
+    active_arch_label = html.escape({
+        "supervisor": "Multi-Agente con Supervisor (Clean Architecture)",
+        "plan-and-execute": "Plan-and-Execute",
+        "pipeline": "Pipeline Secuencial/Paralelo",
+    }.get(active_arch, active_arch))
 
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -393,8 +474,13 @@ font-size:11px;background:color-mix(in srgb,var(--mid) 18%,transparent);color:va
 .log-sup{{color:var(--ac);font-weight:600}}
 .log-agent{{color:var(--ok);font-weight:600}}
 .log-time{{color:var(--mut);font-size:11px;white-space:nowrap}}
+.sup-kpis{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0 6px}}
+.sup-kpi{{background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:10px 12px}}
+.sup-kpi span{{display:block;font-size:11px;color:var(--mut)}}
+.sup-kpi b{{font-size:18px;color:var(--ac)}}
+.sup-phase{{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--ac)}}
 details summary{{cursor:pointer;font-weight:600}}
-@media (max-width:700px){{.hero,.spectrum-grid{{grid-template-columns:1fr}}.cifra{{font-size:44px}}}}
+@media (max-width:700px){{.hero,.spectrum-grid{{grid-template-columns:1fr}}.sup-kpis{{grid-template-columns:repeat(2,1fr)}}.cifra{{font-size:44px}}}}
 </style></head><body><main>
 <h1>Reporte Forense Agéntico: {speaker_name}</h1>
 <div class="mut">Archivo original: {html.escape(video_name_display)} · Duración real: {_convert_seconds_to_mmss(video_duration)} · Ejecutado el {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
@@ -403,7 +489,7 @@ details summary{{cursor:pointer;font-weight:600}}
     <div class="cifra {ui_theme}">{display_value}</div>
     <div>
         <h2>Dictamen General: <span class="{ui_theme}">{ui_title_label}</span></h2>
-        <p class="mut" style="margin:0">Confianza del sistema: {confidence_text} · Método: {classifier_method}</p>
+        <p class="mut" style="margin:0">Arquitectura: <b>{active_arch_label}</b> · Confianza del sistema: {confidence_text} · Método: {classifier_method}</p>
     </div>
 </section>
 {missing_banner_html}
@@ -430,7 +516,7 @@ details summary{{cursor:pointer;font-weight:600}}
     </div>
 </section>
 
-{plan_section_html}
+{supervisor_section_html}{plan_section_html}
 <section class="card">
     <h2>Segmentos con Discrepancias Críticas (Cruce MEF/BCRP)</h2>
     <p class="mut" style="margin:0 0 6px">Se muestra un solo hallazgo por tema regulatorio: si la misma promesa se repite en varios segmentos, se agrupa en la primera mención.</p>
@@ -465,12 +551,16 @@ def report_generator_agent(state: Any) -> dict:
         }
     
     real_duration = _resolve_real_duration(state, verdict_data.get("by_segment", []))
+    resolved_architecture = _resolve_architecture(state)
 
     compiled_json_data = {
         "video": state.get("video", "videos/discurso.mp4"), 
         "speaker": state.get("speaker", "Desconocido"),
         "duration_seconds": real_duration,
         "transcription_source": state.get("transcription_source", "fallback"),
+        "architecture": resolved_architecture,
+        "supervisor_metrics": state.get("supervisor_metrics"),
+        "supervisor_trace": state.get("supervisor_trace", []),
         "verdict": {k: v for k, v in verdict_data.items() if k != "by_segment"},
         "left_wing_evidence": state.get("left_wing_evidence", []),
         "right_wing_evidence": state.get("right_wing_evidence", []),
@@ -479,7 +569,6 @@ def report_generator_agent(state: Any) -> dict:
                      for s, f in zip(state.get("segments", []), verdict_data.get("by_segment", []))],
         "logs": state.get("logs", []),
         "errors": state.get("errors", []),
-        "architecture": (state.get("plan_metrics") or {}).get("architecture", "pipeline"),
         "plan_metrics": state.get("plan_metrics"),
         "plan": state.get("plan", []),
         "methodology_warning": METRIC_WARNING,

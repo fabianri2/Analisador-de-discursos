@@ -1,4 +1,11 @@
 """Capa de Adaptadores - Clean Architecture."""
+from .analysis_gateway import (
+    LocalReportRepository,
+    OrchestratorPipelineGateway,
+    create_speech_analysis_use_case,
+    list_corpus_media_files,
+    persist_uploaded_media,
+)
 from .supervisor_adapter import (
     SupervisorAdapter,
     default_supervisor_adapter,
@@ -21,4 +28,9 @@ __all__ = [
     "factual_audit_worker",
     "judge_consolidation_worker",
     "report_generation_worker",
+    "OrchestratorPipelineGateway",
+    "LocalReportRepository",
+    "create_speech_analysis_use_case",
+    "list_corpus_media_files",
+    "persist_uploaded_media",
 ]

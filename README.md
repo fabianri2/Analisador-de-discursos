@@ -48,7 +48,18 @@ python main.py analyze videos/discurso.mp4 --arquitectura plan-and-execute --out
 ```
 El planner descompone el discurso en pasos de verificación, el executor los resuelve contra los benchmarks documentales y el replanner reformula los pasos sin evidencia. Las métricas del plan (pasos, cobertura, replanificaciones) quedan en `result.json` y en una sección del reporte HTML.
 
-### 1.c Pruebas y evaluación:
+### 1.c Ejecutar con la arquitectura Multi-Agente Supervisor (Clean Architecture):
+```bash
+python main.py analyze "videos/Discurso Dina Boluarte 30 de enero de 2023.srt" --arquitectura supervisor --speaker "Dina Boluarte"
+```
+El Agente Supervisor dirige dinámicamente el grafo en topología en estrella (*Hub-and-Spoke*) bajo separación estricta de capas (`domain` → `application` → `adapters` → `infrastructure`), exportando `supervisor_metrics` y `supervisor_trace` en `result.json` y `report.html`.
+
+### 1.d Ejecutar la Interfaz Web (Streamlit bajo Clean Architecture):
+```bash
+streamlit run app.py
+```
+
+### 1.e Pruebas y evaluación:
 ```bash
 python -m unittest discover -s tests -v          # pruebas unitarias
 python scripts/evaluar_plan_and_execute.py       # métricas locales del plan
@@ -128,22 +139,29 @@ El árbol de directorios del proyecto sigue una arquitectura limpia y modular en
 
 ```text
 ├── main.py                     # Interfaz de Línea de Comandos (CLI Portal)
+├── app.py                      # Interfaz Web Streamlit (Capa de Presentación Clean Arch)
+├── ingest_chroma.py            # Ingesta vectorial ChromaDB + YouTube RAG
 └── src/                        # Código fuente del sistema unificado
-    ├── orchestrator.py         # Orquestador del flujo paralelo (LangGraph Core)
+    ├── domain/                 # Capa Dominio: Entidades e interfaces puras (Clean Architecture)
+    ├── application/            # Capa Aplicación: Casos de uso y política del Supervisor
+    ├── adapters/               # Capa Adaptadores: Gateways UI y adaptadores de workers
+    ├── infrastructure/         # Capa Infraestructura: Grafo Hub-and-Spoke en LangGraph
+    ├── arquitecturas/          # Fachadas de arquitecturas (supervisor, plan-and-execute)
+    ├── orchestrator.py         # Orquestador unificado del flujo (LangGraph Core)
     ├── state.py                # Definición del esquema del estado compartido (TypedDict)
     ├── config.py               # Hiperparámetros del sistema y pesos del RAG
-    ├── utils.py                # Funciones auxiliares de cálculo y z-score factual
+    ├── utilities.py            # Funciones auxiliares de cálculo y normalización
     ├── training.py             # Pipeline de entrenamiento y validación cruzada
-    └── agentes/                # Nódos especializados del Grafo Multiagente
+    └── agentes/                # Nodos especializados del Grafo Multiagente
         ├── ingestion_agent.py      # Extracción de audio PCM con ffmpeg
         ├── transcription_agent.py  # Conversión de voz a texto con faster-whisper
         ├── sentiment_agent.py      # Análisis de trayectoria emocional (TextBlob)
         ├── linguistic_agent.py     # Análisis semántico y marcadores lingüísticos
         ├── syntactic_agent.py      # Medición de opacidad e Índice de Niebla
         ├── promise_agent.py        # Extracción y estructuración JSON de metas
-        ├── factual_agent.py        # Validación cruzada contra la base de datos RAG
+        ├── factual_agent.py        # Validación cruzada contra la base de datos RAG + ChromaDB
         ├── judge_agent.py          # Árbitro de veredicto final e inferencia ML
-        └── report_agent.py         # Generación del dashboard analítico interactivo
+        └── report_agent.py         # Generación del dashboard analítico interactivo HTML/JSON
 ```
 
 ---
