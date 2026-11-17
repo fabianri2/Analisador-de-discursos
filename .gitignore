@@ -28,13 +28,19 @@ videos/*.webm
 # Salidas generadas en las pruebas locales
 resultados_taller/
 resultados_plan/
+<<<<<<< Updated upstream
 results/_prueba*/
+=======
+resultados_metricas/
+>>>>>>> Stashed changes
 
-# Documentación local (se sube a Notion, no al repositorio)
+# Documentos locales del proyecto (no se versionan)
 /docs/
+/03_Metricas*.docx
 
 # OS / Editor files
 .vscode/
 .idea/
 Thumbs.db
 .DS_Store
+/docs
