@@ -61,7 +61,7 @@ def _render_supervisor_panel(result: AnalysisExecutionResult) -> None:
             }
             for step in trace
         ]
-        st.dataframe(rows, width="stretch", hide_index=True)
+        st.dataframe(rows)
 
 
 def _render_plan_panel(result: AnalysisExecutionResult) -> None:
@@ -76,23 +76,58 @@ def _render_plan_panel(result: AnalysisExecutionResult) -> None:
     p3.metric("Replanificaciones", pm.get("replanned_steps", 0))
     p4.metric("Cobertura", f"{float(pm.get('coverage', 0.0)) * 100:.0f}%")
     if result.plan:
-        st.dataframe(
-            [
-                {
-                    "Paso": step.get("step"),
-                    "Afirmación": str(step.get("claim", ""))[:120],
-                    "Resolución": step.get("resolution") or step.get("status"),
-                    "Fuente": step.get("source") or "—",
-                }
-                for step in result.plan
-            ],
-            width="stretch",
-            hide_index=True,
-        )
+        st.dataframe()
 
 
 def _render_chromadb_and_omissions(result: AnalysisExecutionResult) -> None:
-    """Muestra las omisiones sectoriales y el contraste político recuperado de ChromaDB."""
+    """Muestra auditoría RAG por sector (cumplimiento actual + línea de tiempo), omisiones y contraste político."""
+    st.subheader("🏛️ Auditoría Factual RAG por Sector, Cumplimiento Actual y Línea de Tiempo")
+
+    cards = result.sector_audit_cards or []
+    if not cards:
+        st.info("No se detectaron promesas sectoriales específicas en este fragmento del discurso.")
+    else:
+        available_sectors = ["Todos los sectores"] + sorted({c.get("sector", "General") for c in cards})
+        selected_sector = st.selectbox(
+            "Filtrar auditoría por sector gubernamental:",
+            options=available_sectors,
+            key="sector_filter_selectbox",
+        )
+        filtered_cards = (
+            cards if selected_sector == "Todos los sectores"
+            else [c for c in cards if c.get("sector") == selected_sector]
+        )
+
+        for card in filtered_cards:
+            estado = card.get("estado_actual", "Parcial")
+            if estado == "Cumplido":
+                badge = "🟢 CUMPLIDO"
+            elif estado == "Incumplido":
+                badge = "🔴 INCUMPLIDO"
+            else:
+                badge = "🟡 CUMPLIMIENTO PARCIAL"
+
+            with st.container():
+                st.markdown("---")
+                h_col1, h_col2 = st.columns([3, 1])
+                h_col1.markdown(f"### 📌 Sector: {card.get('sector')} — {badge}")
+                h_col2.metric("Discrepancia Factual", f"{card.get('discrepancy_score', 0):.1f}/100")
+
+                st.markdown(f"**Afirmación en el discurso (seg. {card.get('timestamp_start', 0):.1f}s):** *“{card.get('promise_excerpt', '')}”*")
+                st.markdown(f"**Evidencia Oficial Actual ({card.get('source', 'Fuente Oficial')}):** {card.get('evidencia_actual', '')}")
+
+                timeline = card.get("timeline") or []
+                if timeline:
+                    st.markdown("**⏳ Línea de Tiempo Histórica del Compromiso:**")
+                    t_cols = st.columns(len(timeline))
+                    for idx, hito in enumerate(timeline):
+                        partes = hito.split("|", 1)
+                        fecha = partes[0].strip() if len(partes) > 1 else f"Hito {idx + 1}"
+                        detalle = partes[1].strip() if len(partes) > 1 else hito
+                        with t_cols[idx]:
+                            st.info(f"**{fecha}**\n\n{detalle}")
+
+    st.markdown("---")
     col_omit, col_spec = st.columns([1, 2])
     with col_omit:
         st.subheader("🚨 Omisiones Sectoriales")
@@ -107,17 +142,17 @@ def _render_chromadb_and_omissions(result: AnalysisExecutionResult) -> None:
         if not result.left_wing_evidence and not result.right_wing_evidence:
             st.info("No se recuperaron evidencias vectoriales adicionales en ChromaDB para este discurso.")
         else:
-            c_left, c_right = st.columns(2)
-            with c_left:
-                st.markdown("**Perspectiva Izquierda / Crítica**")
-                for item in result.left_wing_evidence:
-                    st.caption(f"{item.get('source_channel', 'Fuente')} · {item.get('related_topic', 'General')}")
-                    st.write(f"“{item.get('excerpt', '')}”")
-            with c_right:
-                st.markdown("**Perspectiva Derecha / Oficialista**")
-                for item in result.right_wing_evidence:
-                    st.caption(f"{item.get('source_channel', 'Fuente')} · {item.get('related_topic', 'General')}")
-                    st.write(f"“{item.get('excerpt', '')}”")
+            st.markdown("**🔴 Perspectiva Izquierda / Crítica**")
+            for item in result.left_wing_evidence:
+                st.caption(f"{item.get('source_channel', 'Fuente')} · {item.get('related_topic', 'General')}")
+                st.write(f"“{item.get('excerpt', '')}”")
+
+            st.markdown("---")
+            st.markdown("**🔵 Perspectiva Derecha / Oficialista**")
+            for item in result.right_wing_evidence:
+                st.caption(f"{item.get('source_channel', 'Fuente')} · {item.get('related_topic', 'General')}")
+                st.write(f"“{item.get('excerpt', '')}”")
+
 
 
 def _render_results(result: AnalysisExecutionResult) -> None:
@@ -149,7 +184,6 @@ def _render_results(result: AnalysisExecutionResult) -> None:
             data=json.dumps(json_payload, ensure_ascii=False, indent=2),
             file_name="result.json",
             mime="application/json",
-            width="stretch",
         )
         st.json(json_payload, expanded=False)
 
@@ -161,7 +195,6 @@ def _render_results(result: AnalysisExecutionResult) -> None:
                 data=result.report_html_content,
                 file_name="report.html",
                 mime="text/html",
-                width="stretch",
             )
             components.html(result.report_html_content, height=820, scrolling=True)
         else:
@@ -171,6 +204,7 @@ def _render_results(result: AnalysisExecutionResult) -> None:
         with st.expander("⚠️ Avisos de degradación controlada"):
             for err in result.errors:
                 st.write(f"- {err}")
+
 
 
 def main() -> None:
@@ -206,7 +240,6 @@ def main() -> None:
     source_mode = st.radio(
         "Origen del discurso",
         options=["📂 Corpus local (videos/)", "⬆️ Subir archivo (.mp4 / .srt)"],
-        horizontal=True,
     )
 
     selected_input_path: str | None = None
@@ -233,8 +266,8 @@ def main() -> None:
 
     can_run = uploaded_payload is not None or selected_input_path is not None
 
-    if can_run and st.button("🚀 Iniciar Auditoría Forense Computacional", type="primary"):
-        with st.status("Ejecutando flujo bajo Clean Architecture...", expanded=True) as status:
+    if can_run and st.button("🚀 Iniciar Auditoría Forense Computacional"):
+        with st.spinner("Ejecutando flujo bajo Clean Architecture..."):
             st.write(f"1️⃣ Preparando entrada para arquitectura **{architecture}**...")
             target_path = (
                 persist_uploaded_media(uploaded_payload[0], uploaded_payload[1])
@@ -254,9 +287,8 @@ def main() -> None:
                 )
                 result = use_case.execute(request)
                 st.session_state["last_analysis_result"] = result
-                status.update(label="✅ ¡Auditoría Finalizada con Éxito!", state="complete", expanded=False)
+                st.success("✅ ¡Auditoría Finalizada con Éxito!")
             except Exception as exc:
-                status.update(label="❌ Error durante la auditoría", state="error", expanded=True)
                 st.error(f"No se pudo completar el análisis ({type(exc).__name__}): {exc}")
 
     if "last_analysis_result" in st.session_state:

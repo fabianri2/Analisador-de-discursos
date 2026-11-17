@@ -56,4 +56,6 @@ class SpeechAnalysisState(TypedDict, total=False):
     left_wing_evidence: List[Dict[str, Any]]
     right_wing_evidence: List[Dict[str, Any]]
     omitted_topics: List[str]
+    sector_audit_cards: List[Dict[str, Any]]
+
     

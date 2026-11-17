@@ -16,10 +16,10 @@
       "judge_consolidation",
       "report_generation"
     ],
-    "critical_discrepancies_detected": 3,
+    "critical_discrepancies_detected": 2,
     "rechecks_requested": 0,
     "final_verdict": "neutral",
-    "confidence_score": 0.8
+    "confidence_score": 0.75
   },
   "supervisor_trace": [
     {
@@ -28,7 +28,7 @@
       "assigned_worker": "ingestion_transcription",
       "rationale": "No se cuenta con transcripción ni segmentos. Delegar en especialista de Ingesta y Transcripción.",
       "critical_alert": false,
-      "timestamp": 1794401457.092
+      "timestamp": 1794885938.55
     },
     {
       "cycle": 2,
@@ -36,7 +36,7 @@
       "assigned_worker": "promise_extraction",
       "rationale": "Transcripción disponible. Delegar en especialista de Promesas para aislar compromisos verificables.",
       "critical_alert": false,
-      "timestamp": 1794401457.101
+      "timestamp": 1794885938.554
     },
     {
       "cycle": 3,
@@ -44,7 +44,7 @@
       "assigned_worker": "linguistic_analysis",
       "rationale": "Faltan marcadores léxicos LIWC. Delegar en especialista Lingüístico.",
       "critical_alert": false,
-      "timestamp": 1794401457.111
+      "timestamp": 1794885938.559
     },
     {
       "cycle": 4,
@@ -52,7 +52,7 @@
       "assigned_worker": "syntactic_analysis",
       "rationale": "Falta cálculo de opacidad sintáctica (Índice de Niebla). Delegar en especialista Sintáctico.",
       "critical_alert": false,
-      "timestamp": 1794401457.384
+      "timestamp": 1794885938.603
     },
     {
       "cycle": 5,
@@ -60,15 +60,15 @@
       "assigned_worker": "factual_audit",
       "rationale": "Métricas estilísticas completas y 25 promesas aisladas. Delegar en especialista Factual RAG para contrastación regulatoria contra MEF/BCRP/JNE.",
       "critical_alert": false,
-      "timestamp": 1794401457.393
+      "timestamp": 1794885938.606
     },
     {
       "cycle": 6,
       "phase": "CONSOLIDATING_VERDICT",
       "assigned_worker": "judge_consolidation",
-      "rationale": "Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 3 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.",
+      "rationale": "Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 2 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.",
       "critical_alert": true,
-      "timestamp": 1794401476.081
+      "timestamp": 1794885939.997
     },
     {
       "cycle": 7,
@@ -76,12 +76,12 @@
       "assigned_worker": "report_generation",
       "rationale": "Veredicto emitido (neutral). Delegar en Agente Reportero para generar HTML y JSON.",
       "critical_alert": false,
-      "timestamp": 1794401476.322
+      "timestamp": 1794885940.0
     }
   ],
   "verdict": {
     "method": "Algoritmo Heurístico Agéntico Multi-Modal",
-    "opacity_index": 47.4,
+    "opacity_index": 51.8,
     "label": "neutral",
     "deviation_probability": null,
     "modalities": [
@@ -93,42 +93,29 @@
     ],
     "critical_segments": [
       12,
-      15,
       1
     ],
     "critical_findings": [
       {
         "segment_id": 12,
-        "topic": "Cronograma Electoral y Mandato Presidencial",
-        "topic_key": "cronograma_electoral_y_mandato_presidencial",
-        "audit_note": "La promesa categórica de elecciones generales en 2023 y recorte de mandato no se concretó formalmente en el año fiscal auditado.",
-        "source": "JNE / ONPE / Diario Oficial El Peruano (Registro de Comicios 2023)",
+        "topic": "Sector Reforma Constitucional",
+        "topic_key": "reforma_constitucional",
+        "audit_note": "Promesa presidencial de adelanto de elecciones generales para 2023 y recorte de mandato ejecutivo y congresal. — Evidencia: El Congreso archivó las propuestas de adelanto electoral y el mandato continuó hasta julio de 2026.",
+        "source": "JNE / ONPE / Diario Oficial El Peruano",
         "factual_score": 90.0,
         "index": 62.6,
         "start": 105.05,
         "end": 113.97,
-        "mentions": 5
-      },
-      {
-        "segment_id": 15,
-        "topic": "Reforma Constitucional",
-        "topic_key": "reforma_constitucional",
-        "audit_note": "La iniciativa de reforma total de la carta de 1993 no superó las comisiones dictaminadoras ni fue promulgada.",
-        "source": "Archivo Digital de la Legislatura del Congreso de la República (2023)",
-        "factual_score": 78.0,
-        "index": 57.8,
-        "start": 129.65,
-        "end": 139.13,
-        "mentions": 8
+        "mentions": 15
       },
       {
         "segment_id": 1,
-        "topic": "Seguridad y Paz Social",
-        "topic_key": "seguridad_y_paz_social",
-        "audit_note": "Los registros oficiales constataron 49 civiles fallecidos en enfrentamientos y paralización de corredores viales clave.",
-        "source": "Defensoría del Pueblo (Reporte de Conflictos Sociales Enero-Marzo 2023)",
-        "factual_score": 72.0,
-        "index": 45.6,
+        "topic": "Sector Seguridad",
+        "topic_key": "seguridad",
+        "audit_note": "Compromiso de pacificación nacional, restablecimiento del orden interno y diálogo social sin vulneración de derechos fundamentales. — Evidencia: Defensoría reportó 49 civiles fallecidos en enfrentamientos y declaratorias prolongadas de estado de emergencia.",
+        "source": "Defensoría del Pueblo / Ministerio del Interior",
+        "factual_score": 78.0,
+        "index": 47.4,
         "start": 15.73,
         "end": 21.09,
         "mentions": 3
@@ -143,7 +130,7 @@
       "syntactic_p90": 84.3,
       "promise_extraction_mean": 17.059,
       "promise_extraction_p90": 35.0,
-      "factual_rag_mean": 22.249,
+      "factual_rag_mean": 23.596,
       "factual_rag_p90": 40.5,
       "sentiment__mean_polarity": 0.061,
       "sentiment__polarity_deviation": 0.359,
@@ -162,70 +149,62 @@
       "syntactic__max_opacity": 94.8,
       "promise_extraction__total_promises": 25.0,
       "promise_extraction__high_commitment_segments": 4.0,
-      "factual_rag__mean_factual_discrepancy": 0.222,
+      "factual_rag__mean_factual_discrepancy": 0.236,
       "factual_rag__evaluated_segments_count": 51.0,
-      "factual_rag__critical_segments_count": 3.0,
-      "factual_rag__unique_topics_count": 3.0,
-      "factual_rag__critical_topics_count": 3.0,
-      "factual_rag__repeated_mentions_count": 13.0,
-      "factual_rag__chroma_left_hits": 3.0,
-      "factual_rag__chroma_right_hits": 3.0,
-      "factual_rag__omitted_sectors_count": 4.0,
-      "mean_opacity_index": 27.677
+      "factual_rag__critical_segments_count": 2.0,
+      "factual_rag__unique_topics_count": 2.0,
+      "factual_rag__critical_topics_count": 2.0,
+      "factual_rag__repeated_mentions_count": 16.0,
+      "factual_rag__chroma_left_hits": 2.0,
+      "factual_rag__chroma_right_hits": 2.0,
+      "factual_rag__omitted_sectors_count": 6.0,
+      "mean_opacity_index": 28.081
     },
-    "confidence": 0.8
+    "confidence": 0.75
   },
   "left_wing_evidence": [
     {
-      "excerpt": "una actividad oficial en la Plaza de Armas dijo que la elección ha sido hasta el 28 de julio del 2026 y hay que obedecer lo que indica la Constitución ha quedado bastante Claro que no buscará ningún adelanto de elecciones por la tarde la presidenta voló arte Tuvo una serie de reuniones con las bancadas del Congreso se reunió con la bancada de avanza país luego con la de cambio democrático Juntos por el Perú después con la de somos Perú y finalmente",
-      "source_channel": "Podcast Político (YouTube)",
+      "excerpt": "El despliegue policial y militar agravó la conflictividad social en regiones del sur sin abrir mesas reales de diálogo.",
+      "source_channel": "La República / Cobertura Derechos Humanos",
+      "sector": "Seguridad",
       "spectrum": "izquierda",
-      "similarity_score": 0.543,
-      "related_topic": "Seguridad y Paz Social"
+      "similarity_score": 0.475,
+      "related_topic": "Sector Seguridad"
     },
     {
-      "excerpt": "El Ejecutivo prometió adelanto de elecciones para el 2023, pero desde el Congreso y Palacio se bloqueó cualquier reforma constitucional para quedarse hasta el 2026.",
+      "excerpt": "El Ejecutivo condicionó el adelanto de elecciones al Congreso y postergó cualquier reforma constitucional para quedarse hasta 2026.",
       "source_channel": "Análisis Crítico / Canal Curwen (YouTube)",
+      "sector": "Reforma Constitucional",
       "spectrum": "izquierda",
-      "similarity_score": 0.742,
-      "related_topic": "Cronograma Electoral y Mandato Presidencial"
-    },
-    {
-      "excerpt": "El Ejecutivo condicionó el adelanto de elecciones al Congreso y evadió su responsabilidad política frente a los fallecidos en las protestas del sur andino.",
-      "source_channel": "Análisis Crítico / Canal Curwen (YouTube)",
-      "spectrum": "izquierda",
-      "similarity_score": 0.594,
-      "related_topic": "Reforma Constitucional"
+      "similarity_score": 0.672,
+      "related_topic": "Sector Reforma Constitucional"
     }
   ],
   "right_wing_evidence": [
     {
-      "excerpt": "también en las regiones de cusco puno Lima ayacucho lambayeque y la libertad beneficiando a más de 10,000 trabajadores directos e indirectos en las zonas aledañas la lucha frontal contra la corrupción no se detiene y se da contra cualquiera de sus manifestaciones así nuestro gobierno por primera vez efectuó un cambio fundamental en la forma como se vendían los boletos para ingresar al santuario histórico tras ello la periodista de bonker Juliana",
-      "source_channel": "Prensa Nacional (YouTube)",
+      "excerpt": "queridos compatriotas en los últimos días como todos lo hemos apreciado el país se ha visto envuelto en una espiral de violencia que ha perjudicado a todo el Perú pero sobre todo a los más desfavorecidos pudimos apreciar con indignación que nuestra Policía Nacional ha sido agredida mansalva por un grupo organizado de individuos que quieren sembrar el caos el odio entre los peruanos a esa misma hora El Congreso de la República debatía el adelanto",
+      "source_channel": "Prensa Nacional / Diario Trome (YouTube)",
+      "sector": "Seguridad",
       "spectrum": "derecha",
-      "similarity_score": 0.547,
-      "related_topic": "Seguridad y Paz Social"
+      "similarity_score": 0.743,
+      "related_topic": "Sector Seguridad"
     },
     {
-      "excerpt": "La presidenta presentó una iniciativa legislativa con carácter de urgencia para adelantar las elecciones generales a 2023 y pacificar el país.",
-      "source_channel": "Juliana Oxenford / Análisis de Coyuntura",
+      "excerpt": "La presidenta presentó una iniciativa legislativa con carácter de urgencia para adelantar los comicios dentro del marco constitucional vigente.",
+      "source_channel": "El Comercio / Editorial Política",
+      "sector": "Reforma Constitucional",
       "spectrum": "derecha",
-      "similarity_score": 0.617,
-      "related_topic": "Cronograma Electoral y Mandato Presidencial"
-    },
-    {
-      "excerpt": "El debate sobre reformas constitucionales debe canalizarse estrictamente dentro del marco democrático del Congreso sin ceder ante presiones de una Asamblea Constituyente.",
-      "source_channel": "Juliana Oxenford / Análisis de Coyuntura",
-      "spectrum": "derecha",
-      "similarity_score": 0.61,
-      "related_topic": "Reforma Constitucional"
+      "similarity_score": 0.438,
+      "related_topic": "Sector Reforma Constitucional"
     }
   ],
   "omitted_topics": [
     "Salud Pública y Hospitales",
-    "Desarrollo Territorial Andino y Regiones",
+    "Desarrollo Territorial y Regiones",
     "Educación e Infraestructura Escolar",
-    "Reactivación Agraria e Hídrica"
+    "Reactivación Agraria e Hídrica",
+    "Minería e Inversiones",
+    "Infraestructura y Prevención Climática"
   ],
   "segments": [
     {
@@ -248,9 +227,9 @@
       "start": 15.73,
       "end": 21.09,
       "text": "visto envuelto en una espiral de violencia que ha perjudicado a todo el Perú, pero sobre",
-      "index": 45.593,
+      "index": 47.392,
       "families": {
-        "factual_rag": 72.0,
+        "factual_rag": 78.0,
         "syntactic": 45.9,
         "promise_extraction": 0.0,
         "linguistic": 51.25,
@@ -263,9 +242,9 @@
       "start": 21.09,
       "end": 29.45,
       "text": "todo a los más desfaborecidos. Pudimos apreciar con indignación que nuestra Policía Nacional",
-      "index": 28.191,
+      "index": 29.001,
       "families": {
-        "factual_rag": 32.4,
+        "factual_rag": 35.1,
         "syntactic": 69.854,
         "promise_extraction": 0.0,
         "linguistic": 20.0,
@@ -458,9 +437,9 @@
       "start": 129.65,
       "end": 139.13,
       "text": "con carácter urgencia. La primera debatir una reforma constitucional para que las elecciones",
-      "index": 57.809,
+      "index": 46.559,
       "families": {
-        "factual_rag": 78.0,
+        "factual_rag": 40.5,
         "syntactic": 79.546,
         "promise_extraction": 70.0,
         "linguistic": 20.0,
@@ -488,9 +467,9 @@
       "start": 148.37,
       "end": 156.49,
       "text": "de ser el caso en diciembre. Estas cuestiones implican, como es evidente, una reforma constitucional",
-      "index": 34.81,
+      "index": 36.43,
       "families": {
-        "factual_rag": 35.1,
+        "factual_rag": 40.5,
         "syntactic": 63.9,
         "promise_extraction": 35.0,
         "linguistic": 20.0,
@@ -653,9 +632,9 @@
       "start": 239.13,
       "end": 247.05,
       "text": "a la población canalizar institucionalmente y no por la violencia sus principales demandas",
-      "index": 39.585,
+      "index": 40.395,
       "families": {
-        "factual_rag": 32.4,
+        "factual_rag": 35.1,
         "syntactic": 69.854,
         "promise_extraction": 0.0,
         "linguistic": 58.462,
@@ -683,9 +662,9 @@
       "start": 254.29,
       "end": 260.93,
       "text": "a sanjar de una vez por todas el debate sobre la reforma de la Constitución tema que es permanentemente",
-      "index": 16.825,
+      "index": 25.375,
       "families": {
-        "factual_rag": 12.0,
+        "factual_rag": 40.5,
         "syntactic": 43.626,
         "promise_extraction": 0.0,
         "linguistic": 20.0,
@@ -728,9 +707,9 @@
       "start": 275.49,
       "end": 283.49,
       "text": "la Comisión de Constitución la Reforma Total de la Constitución de 1993. Este proyecto de ley",
-      "index": 40.13,
+      "index": 41.75,
       "families": {
-        "factual_rag": 35.1,
+        "factual_rag": 40.5,
         "syntactic": 55.5,
         "promise_extraction": 70.0,
         "linguistic": 20.0,
@@ -758,9 +737,9 @@
       "start": 288.97,
       "end": 296.57,
       "text": "quiere hacer reformas políticas mediante una asamblea constituyente. Como ya lo dije, ya no habría",
-      "index": 33.13,
+      "index": 34.75,
       "families": {
-        "factual_rag": 35.1,
+        "factual_rag": 40.5,
         "syntactic": 55.5,
         "promise_extraction": 35.0,
         "linguistic": 20.0,
@@ -788,9 +767,9 @@
       "start": 305.21,
       "end": 315.13,
       "text": "En primer lugar, que el proceso de reforma total de la Constitución de 1993 tiene su vaso legal",
-      "index": 29.537,
+      "index": 31.157,
       "families": {
-        "factual_rag": 35.1,
+        "factual_rag": 40.5,
         "syntactic": 37.535,
         "promise_extraction": 35.0,
         "linguistic": 20.0,
@@ -818,9 +797,9 @@
       "start": 326.57,
       "end": 332.81,
       "text": "Que el Congreso proponga un proyecto de reforma total de la Constitución tomando en cuenta la",
-      "index": 34.36,
+      "index": 35.98,
       "families": {
-        "factual_rag": 35.1,
+        "factual_rag": 40.5,
         "syntactic": 61.65,
         "promise_extraction": 35.0,
         "linguistic": 20.0,
@@ -833,9 +812,9 @@
       "start": 332.81,
       "end": 341.89,
       "text": "Constitución histórica del Perú. Tras su aprobación, por el Congreso será sometida referéndum para",
-      "index": 28.42,
+      "index": 36.97,
       "families": {
-        "factual_rag": 12.0,
+        "factual_rag": 40.5,
         "syntactic": 66.6,
         "promise_extraction": 35.0,
         "linguistic": 20.0,
@@ -893,9 +872,9 @@
       "start": 364.37,
       "end": 371.77,
       "text": "sus anteproyectos o sus aportes al Congreso de la República. Además, la Comisión de Constitución",
-      "index": 29.49,
+      "index": 31.11,
       "families": {
-        "factual_rag": 35.1,
+        "factual_rag": 40.5,
         "syntactic": 72.3,
         "promise_extraction": 0.0,
         "linguistic": 20.0,
@@ -923,9 +902,9 @@
       "start": 378.37,
       "end": 386.93,
       "text": "aprobación de la reforma constitucional. Señoras y señores congresistas, tienen que entender",
-      "index": 38.89,
+      "index": 40.51,
       "families": {
-        "factual_rag": 35.1,
+        "factual_rag": 40.5,
         "syntactic": 84.3,
         "promise_extraction": 35.0,
         "linguistic": 20.0,
@@ -996,29 +975,29 @@
   ],
   "logs": [
     "[Supervisor c1] -> ingestion_transcription: No se cuenta con transcripción ni segmentos. Delegar en especialista de Ingesta y Transcripción.",
-    "[supervisor] 0.02s",
+    "[supervisor] 0.00s",
     "[Transcription] 51 segmentos cargados desde Discurso Dina Boluarte 30 de enero de 2023.srt",
-    "[ingestion_transcription] 0.01s",
+    "[ingestion_transcription] 0.00s",
     "[Supervisor c2] -> promise_extraction: Transcripción disponible. Delegar en especialista de Promesas para aislar compromisos verificables.",
     "[supervisor] 0.00s",
     "[PromiseExtractor] 25 promesas y compromisos de Estado detectados.",
-    "[promise_extraction] 0.01s",
+    "[promise_extraction] 0.00s",
     "[Supervisor c3] -> linguistic_analysis: Faltan marcadores léxicos LIWC. Delegar en especialista Lingüístico.",
     "[supervisor] 0.00s",
     "[Linguistic] 749 palabras analizadas en categorías LIWC.",
-    "[linguistic_analysis] 0.27s",
+    "[linguistic_analysis] 0.04s",
     "[Supervisor c4] -> syntactic_analysis: Falta cálculo de opacidad sintáctica (Índice de Niebla). Delegar en especialista Sintáctico.",
     "[supervisor] 0.00s",
     "[Syntactic] Opacidad media Fog Index: 61.5/100",
-    "[syntactic_analysis] 0.01s",
+    "[syntactic_analysis] 0.00s",
     "[Supervisor c5] -> factual_audit: Métricas estilísticas completas y 25 promesas aisladas. Delegar en especialista Factual RAG para contrastación regulatoria contra MEF/BCRP/JNE.",
     "[supervisor] 0.00s",
-    "[FactualAlignment] Cruce RAG MEF/BCRP + ChromaDB: discrepancia media 22.2/100, contraste político (3 izq / 3 der), sectores omitidos: Salud Pública y Hospitales, Desarrollo Territorial Andino y Regiones, Educación e Infraestructura Escolar, Reactivación Agraria e Hídrica.",
-    "[factual_audit] 18.68s",
-    "[Supervisor c6] -> judge_consolidation: Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 3 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.",
+    "[FactualAlignment] Cruce RAG ChromaDB por Sectores: discrepancia media 23.6/100, sectores evaluados (Seguridad, Reforma Constitucional), contraste político (2 izq / 2 der), sectores omitidos: Salud Pública y Hospitales, Desarrollo Territorial y Regiones, Educación e Infraestructura Escolar, Reactivación Agraria e Hídrica, Minería e Inversiones, Infraestructura y Prevención Climática.",
+    "[factual_audit] 1.39s",
+    "[Supervisor c6] -> judge_consolidation: Evidencia factual completa. ¡ALERTA CRÍTICA! Se detectaron 2 segmentos con discrepancia severa. Delegar en Agente Juez para arbitraje multi-modal.",
     "[supervisor] 0.00s",
-    "[Juez] Orquestación cerrada por Algoritmo Heurístico Agéntico Multi-Modal: Índice=47.4 -> neutral",
-    "[judge_consolidation] 0.23s",
+    "[Juez] Orquestación cerrada por Algoritmo Heurístico Agéntico Multi-Modal: Índice=51.8 -> neutral",
+    "[judge_consolidation] 0.00s",
     "[Supervisor c7] -> report_generation: Veredicto emitido (neutral). Delegar en Agente Reportero para generar HTML y JSON.",
     "[supervisor] 0.00s"
   ],

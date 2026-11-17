@@ -79,6 +79,7 @@ class AnalyzeSpeechUseCase(ISpeechAnalysisUseCase):
             left_wing_evidence=list(raw_state.get("left_wing_evidence") or []),
             right_wing_evidence=list(raw_state.get("right_wing_evidence") or []),
             omitted_topics=list(raw_state.get("omitted_topics") or []),
+            sector_audit_cards=list(raw_state.get("sector_audit_cards") or []),
             report_html_path=html_path,
             report_json_path=json_path,
             report_html_content=html_content,

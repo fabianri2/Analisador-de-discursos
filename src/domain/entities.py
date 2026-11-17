@@ -100,6 +100,7 @@ class AnalysisExecutionResult:
     left_wing_evidence: List[Dict[str, Any]] = field(default_factory=list)
     right_wing_evidence: List[Dict[str, Any]] = field(default_factory=list)
     omitted_topics: List[str] = field(default_factory=list)
+    sector_audit_cards: List[Dict[str, Any]] = field(default_factory=list)
     report_html_path: Optional[str] = None
     report_json_path: Optional[str] = None
     report_html_content: str = ""
