@@ -14,7 +14,7 @@ langgraph>=0.2
 textblob>=0.18
 
 # Ingesta: ffmpeg se resuelve desde el PATH o desde este wheel
-# imageio-ffmpeg>=0.5
+imageio-ffmpeg>=0.5
 
 # Transcripción local (opcional si se usan subtítulos .srt/.vtt)
 faster-whisper>=1.1
