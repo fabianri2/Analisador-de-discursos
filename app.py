@@ -6,6 +6,52 @@ Presentación (app.py) -> Aplicación (AnalyzeSpeechUseCase) -> Adaptadores -> I
 from __future__ import annotations
 
 import json
+import re
+from youtube_transcript_api import YouTubeTranscriptApi
+
+
+def _extract_youtube_id(url_or_id: str) -> str | None:
+    """Extrae el ID de 11 caracteres desde cualquier URL o ID de YouTube."""
+    match = re.search(r"(?:v=|youtu\.be\/|embed\/|shorts\/)([0-9A-Za-z_-]{11})", url_or_id.strip())
+    if match:
+        return match.group(1)
+    cleaned = url_or_id.strip()
+    return cleaned if re.fullmatch(r"[0-9A-Za-z_-]{11}", cleaned) else None
+
+
+def _seconds_to_srt_time(seconds: float) -> str:
+    """Convierte segundos flotantes al formato de tiempo estándar SRT (HH:MM:SS,mmm)."""
+    total_ms = int(round(max(0.0, seconds) * 1000))
+    hours, rem = divmod(total_ms, 3_600_000)
+    minutes, rem = divmod(rem, 60_000)
+    secs, ms = divmod(rem, 1000)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d},{ms:03d}"
+
+
+def _fetch_youtube_as_srt_bytes(url_or_id: str) -> tuple[str, bytes]:
+    """Descarga los subtítulos en español de YouTube y los convierte a bytes .srt válidos."""
+    video_id = _extract_youtube_id(url_or_id)
+    if not video_id:
+        raise ValueError("El enlace de YouTube no tiene un ID de video válido.")
+
+    ytt_api = YouTubeTranscriptApi()
+    transcript = ytt_api.fetch(video_id, languages=["es", "es-419", "es-PE", "en"])
+    srt_lines = []
+    for idx, entry in enumerate(transcript, start=1):
+        start_sec = float(getattr(entry, "start", 0.0) if not isinstance(entry, dict) else entry.get("start", 0.0))
+        dur_sec = float(getattr(entry, "duration", 4.0) if not isinstance(entry, dict) else entry.get("duration", 4.0))
+        text = str(getattr(entry, "text", "") if not isinstance(entry, dict) else entry.get("text", "")).replace("\n", " ").strip()
+        if not text:
+            continue
+        end_sec = start_sec + max(dur_sec, 1.0)
+        srt_lines.append(f"{idx}\n{_seconds_to_srt_time(start_sec)} --> {_seconds_to_srt_time(end_sec)}\n{text}\n")
+
+    if not srt_lines:
+        raise ValueError("El video no contiene subtítulos disponibles para extraer.")
+
+    srt_content = "\n".join(srt_lines).encode("utf-8")
+    return f"youtube_{video_id}.srt", srt_content
+
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -236,16 +282,28 @@ def main() -> None:
         "`Presentación (Streamlit)` → `Aplicación (UseCase)` → `Adaptadores` → `Infraestructura (LangGraph)`"
     )
 
-    st.write("### 📁 Cargar Archivo Multimedia o Seleccionar del Corpus")
+    st.write("### 📁 Cargar Archivo Multimedia, YouTube o Corpus")
     source_mode = st.radio(
         "Origen del discurso",
-        options=["📂 Corpus local (videos/)", "⬆️ Subir archivo (.mp4 / .srt)"],
+        options=[
+            "🌐 Enlace de YouTube (Discursos largos)",
+            "📂 Corpus local (videos/)",
+            "⬆️ Subir archivo (.mp4 / .srt)",
+        ],
     )
 
     selected_input_path: str | None = None
     uploaded_payload: tuple[str, bytes] | None = None
+    youtube_url: str = ""
 
-    if source_mode == "⬆️ Subir archivo (.mp4 / .srt)":
+    if source_mode == "🌐 Enlace de YouTube (Discursos largos)":
+        youtube_url = st.text_input(
+            "Pega el enlace del video presidencial en YouTube",
+            placeholder="https://youtube.com...",
+        )
+        if youtube_url.strip():
+            st.caption("✅ Se extraerán automáticamente los subtítulos completos del discurso sin límite de duración.")
+    elif source_mode == "⬆️ Subir archivo (.mp4 / .srt)":
         uploaded_file = st.file_uploader(
             "Selecciona un video presidencial (.mp4, .mkv, .webm) o subtítulos (.srt, .vtt)",
             type=["mp4", "mkv", "mov", "avi", "webm", "srt", "vtt"],
@@ -264,18 +322,25 @@ def main() -> None:
         else:
             st.warning("No hay archivos en la carpeta `videos/`.")
 
-    can_run = uploaded_payload is not None or selected_input_path is not None
+    can_run = (
+        (source_mode == "🌐 Enlace de YouTube (Discursos largos)" and bool(youtube_url.strip()))
+        or uploaded_payload is not None
+        or selected_input_path is not None
+    )
 
     if can_run and st.button("🚀 Iniciar Auditoría Forense Computacional"):
         with st.spinner("Ejecutando flujo bajo Clean Architecture..."):
-            st.write(f"1️⃣ Preparando entrada para arquitectura **{architecture}**...")
-            target_path = (
-                persist_uploaded_media(uploaded_payload[0], uploaded_payload[1])
-                if uploaded_payload is not None
-                else str(selected_input_path)
-            )
-            st.write("2️⃣ Invocando Caso de Uso (`AnalyzeSpeechUseCase`) y agentes especialistas...")
             try:
+                st.write(f"1️⃣ Preparando entrada para arquitectura **{architecture}**...")
+                if source_mode == "🌐 Enlace de YouTube (Discursos largos)":
+                    yt_filename, yt_bytes = _fetch_youtube_as_srt_bytes(youtube_url)
+                    target_path = persist_uploaded_media(yt_filename, yt_bytes)
+                elif uploaded_payload is not None:
+                    target_path = persist_uploaded_media(uploaded_payload[0], uploaded_payload[1])
+                else:
+                    target_path = str(selected_input_path)
+
+                st.write("2️⃣ Invocando Caso de Uso (`AnalyzeSpeechUseCase`) y agentes especialistas...")
                 use_case = create_speech_analysis_use_case()
                 request = AnalysisRequest(
                     video_path=target_path,
