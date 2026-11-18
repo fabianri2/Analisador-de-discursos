@@ -12,7 +12,7 @@ DEFAULT_CONFIGURATION: Dict[str, Any] = {
     },
     "transcription": {
         # Model sizing configuration for faster-whisper (tiny, base, small, medium, large-v3)
-        "whisper_model": "base",
+        "whisper_model": "tiny",
         "language": "es",
         "segment_window_seconds": 8.0,
     },
