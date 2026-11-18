@@ -249,6 +249,45 @@ class SupervisorArchitectureTest(unittest.TestCase):
         self.assertEqual(result.omitted_topics, ["Salud Pública y Hospitales"])
         self.assertEqual(result.supervisor_metrics["total_cycles"], 8)
 
+    def test_supervisor_hitl_full_graph_execution(self):
+        """Ejecuta el flujo supervisado con control Human-in-the-Loop (HITL) y valida los nuevos campos del JSON y HTML."""
+        base_state = _build_base_state()
+        base_state["working_dir"] = "results/_prueba_supervisor_hitl"
+        base_state["architecture"] = "supervisor-hitl"
+
+        final_state = analyze_with_supervisor(base_state, verbose=False, hitl=True)
+
+        # Validar inclusión del especialista HITL en la bitácora
+        trace = final_state.get("supervisor_trace", [])
+        workers_delegated = [step.get("assigned_worker") for step in trace]
+        self.assertIn(WorkerType.HITL_REVIEW.value, workers_delegated)
+        self.assertIn(WorkerType.REPORT_GENERATION.value, workers_delegated)
+
+        # Validar flags de auditoría humana
+        self.assertTrue(final_state.get("hitl_approved"))
+        self.assertEqual(final_state.get("hitl_status"), "APPROVED")
+        self.assertEqual(final_state.get("hitl_checkpoint"), "pre_report_approval")
+
+        # Validar reporte HTML y campos estructurados del nuevo JSON
+        report_data = final_state.get("report", {})
+        self.assertTrue(Path(report_data["html"]).exists())
+        self.assertTrue(Path(report_data["json"]).exists())
+
+        html_content = Path(report_data["html"]).read_text(encoding="utf-8")
+        json_content = json.loads(Path(report_data["json"]).read_text(encoding="utf-8"))
+
+        self.assertEqual(json_content["architecture"], "supervisor-hitl")
+        self.assertTrue(json_content["hitl_approved"])
+        self.assertEqual(json_content["hitl_status"], "APPROVED")
+        self.assertEqual(json_content["hitl_checkpoint"], "pre_report_approval")
+        self.assertIn("hitl_reviewer", json_content)
+        self.assertIn("sector_audit_cards", json_content)
+        self.assertIsNotNone(json_content.get("supervisor_metrics"))
+        self.assertGreater(len(json_content.get("supervisor_trace", [])), 3)
+
+        self.assertIn("Supervisor + Human-in-the-Loop (HITL)", html_content)
+        self.assertIn("Control Perimetral Human-in-the-Loop (HITL)", html_content)
+
     def test_clean_architecture_dependency_rule(self):
         """Valida mediante AST la regla de dependencia de Clean Architecture entre capas."""
 

@@ -25,3 +25,6 @@ youtube-transcript-api>=0.6.2
 
 # Interfaz Web (Capa de Presentación)
 streamlit>=1.38.0
+
+# Evaluación y Monitoreo de Recursos
+psutil>=5.9.0

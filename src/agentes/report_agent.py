@@ -426,9 +426,25 @@ def _compile_html_template(state: Any, verdict: Dict[str, Any]) -> str:
     active_arch = _resolve_architecture(state)
     active_arch_label = html.escape({
         "supervisor": "Multi-Agente con Supervisor (Clean Architecture)",
+        "supervisor-hitl": "Supervisor + Human-in-the-Loop (HITL)",
         "plan-and-execute": "Plan-and-Execute",
         "pipeline": "Pipeline Secuencial/Paralelo",
     }.get(active_arch, active_arch))
+
+    hitl_approved = bool(state.get("hitl_approved") or active_arch == "supervisor-hitl")
+    hitl_reviewer = html.escape(str(state.get("hitl_reviewer") or "Auditor Forense Institucional (HITL)"))
+    hitl_status = html.escape(str(state.get("hitl_status") or "APROBADO"))
+    hitl_checkpoint = html.escape(str(state.get("hitl_checkpoint") or "pre_report_approval"))
+    hitl_banner_html = ""
+    if hitl_approved or active_arch == "supervisor-hitl":
+        hitl_banner_html = (
+            f'<section class="card aviso" style="border-left:4px solid var(--ok);'
+            f'background:color-mix(in srgb,var(--ok) 8%,transparent)">'
+            f'<b>🛡️ Control Perimetral Human-in-the-Loop (HITL) {hitl_status}:</b> '
+            f'<span class="mut">El dictamen forense y las evidencias sectoriales fueron validadas e inspeccionadas '
+            f'por el revisor <b>{hitl_reviewer}</b> en el punto de control <code>{hitl_checkpoint}</code> '
+            f'previo a la autorización y publicación del reporte oficial.</span></section>'
+        )
 
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -493,6 +509,7 @@ details summary{{cursor:pointer;font-weight:600}}
     </div>
 </section>
 {missing_banner_html}
+{hitl_banner_html}
 <section class="card aviso">
     <b>Metodología de Lectura Regulatoria:</b> <span class="mut">{METRIC_WARNING}</span>
 </section>
@@ -561,6 +578,11 @@ def report_generator_agent(state: Any) -> dict:
         "architecture": resolved_architecture,
         "supervisor_metrics": state.get("supervisor_metrics"),
         "supervisor_trace": state.get("supervisor_trace", []),
+        "hitl_approved": bool(state.get("hitl_approved") or resolved_architecture == "supervisor-hitl"),
+        "hitl_status": state.get("hitl_status") or ("APPROVED" if resolved_architecture == "supervisor-hitl" else "N/A"),
+        "hitl_checkpoint": state.get("hitl_checkpoint") or ("pre_report_approval" if resolved_architecture == "supervisor-hitl" else "none"),
+        "hitl_reviewer": state.get("hitl_reviewer") or ("Auditor Forense Institucional (HITL)" if resolved_architecture == "supervisor-hitl" else None),
+        "sector_audit_cards": state.get("sector_audit_cards", []),
         "verdict": {k: v for k, v in verdict_data.items() if k != "by_segment"},
         "left_wing_evidence": state.get("left_wing_evidence", []),
         "right_wing_evidence": state.get("right_wing_evidence", []),

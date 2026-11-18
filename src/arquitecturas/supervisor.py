@@ -17,18 +17,25 @@ from ..infrastructure.supervisor_graph import build_supervisor_graph, run_superv
 from ..state import SpeechAnalysisState
 
 ARCHITECTURE_NAME = "supervisor"
+ARCHITECTURE_HITL_NAME = "supervisor-hitl"
 
 
-def analyze_with_supervisor(state: SpeechAnalysisState, verbose: bool = True) -> SpeechAnalysisState:
+def analyze_with_supervisor(state: SpeechAnalysisState, verbose: bool = True, hitl: bool = False) -> SpeechAnalysisState:
     """Ejecuta el análisis forense completo gobernado por el Agente Supervisor."""
-    state["architecture"] = ARCHITECTURE_NAME
+    if hitl or state.get("architecture") == ARCHITECTURE_HITL_NAME:
+        state["architecture"] = ARCHITECTURE_HITL_NAME
+        is_hitl = True
+    else:
+        state["architecture"] = ARCHITECTURE_NAME
+        is_hitl = False
+
     state.setdefault("supervisor_trace", [])
 
     try:
-        graph = build_supervisor_graph(verbose=verbose)
+        graph = build_supervisor_graph(verbose=verbose, hitl=is_hitl)
         final_state = graph.invoke(state)
         return final_state
     except (ImportError, Exception) as exc:
         if verbose:
             print(f"  [Aviso Supervisor] Activando motor de ejecución supervisada directa ({exc})")
-        return run_supervisor_sequential_fallback(state, verbose=verbose)
+        return run_supervisor_sequential_fallback(state, verbose=verbose, hitl=is_hitl)

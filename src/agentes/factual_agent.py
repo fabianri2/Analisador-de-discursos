@@ -93,8 +93,50 @@ SECTOR_CLASSIFIERS = [
     },
 ]
 
-# Alias de compatibilidad retroactiva para el nodo Plan-and-Execute
+# Alias de compatibilidad retroactiva para el nodo Plan-and-Execute y benchmarks clásicos
 FACTUAL_BENCHMARKS = [
+    {
+        "keywords": [
+            "adelanto de elecciones", "elecciones generales", "comicios generales",
+            "recorte del periodo", "recorto el periodo", "convoque a elecciones",
+        ],
+        "topic": "Cronograma Electoral y Mandato Presidencial",
+        "fact_target": 0.90,
+        "source": "JNE / ONPE / Diario Oficial El Peruano (Registro de Comicios 2023)",
+        "audit_note": "La promesa categórica de elecciones generales en 2023 y recorte de mandato no se concretó formalmente en el año fiscal auditado."
+    },
+    {
+        "keywords": [
+            "reforma total de la constitucion", "asamblea constituyente",
+            "reforma constitucional", "comision de constitucion",
+        ],
+        "topic": "Reforma Constitucional",
+        "fact_target": 0.78,
+        "source": "Archivo Digital de la Legislatura del Congreso de la República (2023)",
+        "audit_note": "La iniciativa de reforma total de la carta de 1993 no superó las comisiones dictaminadoras ni fue promulgada."
+    },
+    {
+        "keywords": [
+            "producto bruto interno", "pbi", "presupuesto publico", "presupuesto nacional",
+            "inversion publica", "deficit fiscal", "crecimiento economico",
+            "obras publicas", "millones de soles", "ejecucion presupuestal",
+        ],
+        "topic": "Consistencia Macroeconómica y Presupuestal MEF/BCRP",
+        "fact_target": 0.82,
+        "source": "BCRP (Memoria Anual 2023) / MEF (Marco Macroeconómico Multianual 2024-2027)",
+        "audit_note": "El PBI oficial cerró en recesión (-0.6%), la inversión privada cayó -7.2% y el déficit fiscal (2.8%) perforó el techo de la regla fiscal."
+    },
+    {
+        "keywords": [
+            "policia nacional", "paz social", "estado de emergencia", "orden interno",
+            "bloqueos", "muertos", "fallecidos", "violencia",
+        ],
+        "topic": "Seguridad y Paz Social",
+        "fact_target": 0.72,
+        "source": "Defensoría del Pueblo (Reporte de Conflictos Sociales Enero-Marzo 2023)",
+        "audit_note": "Los registros oficiales constataron 49 civiles fallecidos en enfrentamientos y paralización de corredores viales clave."
+    },
+] + [
     {"topic": f"Sector {item['sector']}", "keywords": item["keywords"], "fact_target": item["fact_target"], "source": f"ChromaDB RAG - {item['sector']}", "audit_note": f"Auditoría sectorial {item['sector']}"}
     for item in SECTOR_CLASSIFIERS
 ]

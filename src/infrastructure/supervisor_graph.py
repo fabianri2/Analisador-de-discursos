@@ -13,6 +13,7 @@ from typing import Any, Callable, Dict
 from ..adapters.supervisor_adapter import (
     default_supervisor_adapter,
     factual_audit_worker,
+    hitl_review_worker,
     ingestion_transcription_worker,
     judge_consolidation_worker,
     linguistic_analysis_worker,
@@ -30,6 +31,7 @@ WORKER_NODES: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
     WorkerType.SYNTACTIC_ANALYSIS.value: syntactic_analysis_worker,
     WorkerType.FACTUAL_AUDIT.value: factual_audit_worker,
     WorkerType.JUDGE_CONSOLIDATION.value: judge_consolidation_worker,
+    WorkerType.HITL_REVIEW.value: hitl_review_worker,
     WorkerType.REPORT_GENERATION.value: report_generation_worker,
 }
 
@@ -54,7 +56,7 @@ def _wrap_supervised_node(name: str, fn: Callable[[Dict[str, Any]], Dict[str, An
     return node
 
 
-def build_supervisor_graph(verbose: bool = True):
+def build_supervisor_graph(verbose: bool = True, hitl: bool = False):
     """Compila el StateGraph de LangGraph con arquitectura Multi-Agente con Supervisor."""
     from langgraph.graph import END, START, StateGraph
 
@@ -100,10 +102,12 @@ def build_supervisor_graph(verbose: bool = True):
     return workflow.compile()
 
 
-def run_supervisor_sequential_fallback(state: SpeechAnalysisState, verbose: bool = True) -> SpeechAnalysisState:
+def run_supervisor_sequential_fallback(state: SpeechAnalysisState, verbose: bool = True, hitl: bool = False) -> SpeechAnalysisState:
     """Modo de ejecución supervisada determinista sin requerir la máquina de estados de LangGraph."""
     adapter = default_supervisor_adapter
     max_cycles = 15
+    if hitl:
+        state["architecture"] = "supervisor-hitl"
 
     for _ in range(max_cycles):
         decision = adapter.supervisor_node(state)
