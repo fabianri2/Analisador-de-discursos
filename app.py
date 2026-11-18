@@ -300,7 +300,11 @@ def main() -> None:
     st.markdown("---")
 
     st.sidebar.header("⚙️ Configuración")
-    speaker = st.sidebar.text_input("Nombre del Orador/Presidente", value="Dina Boluarte")
+    speaker = st.sidebar.text_input(
+        "Nombre del Orador / Presidente (opcional)",
+        value="",
+        placeholder="Ej. Francisco Sagasti, Martín Vizcarra, Dina Boluarte...",
+    )
     architecture = st.sidebar.selectbox(
         "Arquitectura Agéntica",
         options=list(ARCHITECTURE_OPTIONS.keys()),

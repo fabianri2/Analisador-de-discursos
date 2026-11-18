@@ -313,6 +313,43 @@ RAG_KNOWLEDGE_BASE = [
         "hito_2": "Feb-Jul 2021 | Llegada de lotes de vacunas e inicio de vacunación masiva nacional.",
         "hito_3": "28 Jul 2021 | Entrega de mando presidencial tras elecciones generales certificadas por JNE."
     },
+    {
+        "text": "Gobierno de transición de Francisco Sagasti: Fortalecimiento institucional de la Policía Nacional, apoyo de las Fuerzas Armadas en la emergencia y respeto irrestricto a los derechos humanos.",
+        "tipo": "benchmark_oficial",
+        "sector": "Seguridad",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Discurso de Investidura 17 Nov 2020) / MININTER / Defensoría del Pueblo",
+        "estado_actual": "Cumplido",
+        "evidencia_actual": "Se ejecutó la renovación de mandos policiales y se garantizó el orden interno pacífico durante las jornadas electorales de 2021 sin vulneraciones graves reportadas por Defensoría.",
+        "hito_1": "17 Nov 2020 | Discurso de asunción comprometiendo reforma policial y respeto a derechos humanos.",
+        "hito_2": "Abr-Jun 2021 | Despliegue conjunto de PNP y Fuerzas Armadas garantizando seguridad en primera y segunda vuelta.",
+        "hito_3": "28 Jul 2021 | Cierre de gestión de transición en calma social e institucional."
+    },
+    {
+        "text": "Gobierno de transición de Francisco Sagasti: Defensa del orden constitucional, Bicentenario de la Independencia y garantía de elecciones limpias y transparentes en 2021.",
+        "tipo": "benchmark_oficial",
+        "sector": "Reforma Constitucional",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Mensajes Nov 2020 / Jul 2021) / JNE / ONPE",
+        "estado_actual": "Cumplido",
+        "evidencia_actual": "El Ejecutivo mantuvo estricta neutralidad electoral reconocida por misiones internacionales (OEA y Unión Europea) y culminó con la proclamación oficial y cambio de mando el 28 de julio de 2021.",
+        "hito_1": "Nov 2020 | Compromiso ante el Congreso de asegurar elecciones limpias en el Bicentenario.",
+        "hito_2": "Jun 2021 | Respaldo a la autonomía de los organismos electorales (JNE y ONPE).",
+        "hito_3": "28 Jul 2021 | Entrega de la banda presidencial tras proclamación constitucional."
+    },
+    {
+        "text": "Gobierno de transición de Francisco Sagasti: Reactivación económica responsable, apoyo financiero a las MYPES y protección social frente a la segunda ola de la pandemia.",
+        "tipo": "benchmark_oficial",
+        "sector": "Economía",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Mensaje 28 Jul 2021) / MEF / BCRP",
+        "estado_actual": "Parcial",
+        "evidencia_actual": "El PBI rebote creció 13.3% en 2021 impulsado por exportaciones y reapertura gradual, aunque la recuperación del empleo formal y las microempresas fue desigual.",
+        "hito_1": "Nov 2020 | Anuncio de equilibrio entre control sanitario y reactivación económica.",
+        "hito_2": "Mar 2021 | Ampliación de programas de apoyo crediticio FAE-Mype y bonos focalizados.",
+        "hito_3": "Jul 2021 | Cierre de transición con reservas internacionales estables y recuperación macroeconómica en curso."
+    },
+
 
     # --- PERIODO PEDRO CASTILLO (2021-2022) - EL PERUANO ---
     {
