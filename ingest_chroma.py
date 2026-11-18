@@ -273,6 +273,18 @@ RAG_KNOWLEDGE_BASE = [
         "hito_2": "2018 | Retrasos en expedientes técnicos y paralización de obras viales en Piura y La Libertad.",
         "hito_3": "Actualidad | Obras de drenaje pluvial fueron transferidas posteriormente a la ANIN."
     },
+    {
+        "text": "Gobierno de PPK: Cierre de brechas en hospitales públicos, acceso a agua potable y mejora de la calidad educativa.",
+        "tipo": "benchmark_oficial",
+        "sector": "Salud",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Mensaje 28 Jul 2016) / MINSA / MVCS",
+        "estado_actual": "Parcial",
+        "evidencia_actual": "Se destrabaron proyectos urbanos de saneamiento, pero la infraestructura hospitalaria regional mantuvo brechas superiores al 35%.",
+        "hito_1": "Jul 2016 | Anuncio de meta de cierre de brechas sanitarias y agua potable.",
+        "hito_2": "2017 | Ejecución parcial de inversiones hospitalarias en regiones.",
+        "hito_3": "Mar 2018 | Interrupción de gestión por crisis política."
+    },
 
     # --- PERIODO MARTÍN VIZCARRA (2018-2020) - EL PERUANO ---
     {
@@ -298,6 +310,18 @@ RAG_KNOWLEDGE_BASE = [
         "hito_1": "Jul 2020 | Anuncio de inversión histórica en salud y programa Reactiva Perú en mensaje presidencial.",
         "hito_2": "Nov 2020 | Vacancia presidencial interrumpe continuidad de gestión sanitaria.",
         "hito_3": "Actualidad | Déficit estructural de plantas de oxígeno y hospitales de nivel III persiste."
+    },
+    {
+        "text": "Gobierno de Martín Vizcarra: Plan Nacional de Infraestructura para la Competitividad, programa Reactiva Perú y sostenibilidad fiscal.",
+        "tipo": "benchmark_oficial",
+        "sector": "Economía",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Mensajes 28 Jul 2019 / 2020) / MEF / BCRP",
+        "estado_actual": "Parcial",
+        "evidencia_actual": "Reactiva Perú sostuvo la liquidez empresarial en 2020, aunque el PBI cayó 11% por el impacto de la pandemia y la paralización de proyectos.",
+        "hito_1": "Jul 2019 | Lanzamiento del Plan Nacional de Infraestructura con 52 proyectos priorizados.",
+        "hito_2": "Abr 2020 | Implementación de créditos garantizados Reactiva Perú por S/ 60,000 millones.",
+        "hito_3": "Nov 2020 | Inicio de reactivación económica por fases."
     },
 
     # --- PERIODO FRANCISCO SAGASTI (2020-2021) - EL PERUANO ---
@@ -353,29 +377,53 @@ RAG_KNOWLEDGE_BASE = [
 
     # --- PERIODO PEDRO CASTILLO (2021-2022) - EL PERUANO ---
     {
-        "text": "Gobierno de Pedro Castillo: Segunda Reforma Agraria, compra estatal de fertilizantes (urea) para pequeños agricultores y apoyo hídrico rural.",
-        "tipo": "benchmark_oficial",
-        "sector": "Agro",
-        "espectro": "oficial",
-        "fuente": "Diario Oficial El Peruano (Mensajes 28 Jul 2021-2022) / MIDAGRI / Contraloría",
-        "estado_actual": "Incumplido",
-        "evidencia_actual": "Cuatro licitaciones internacionales de urea fracasaron por irregularidades detectadas por Contraloría y los fertilizantes nunca llegaron en la campaña 2022.",
-        "hito_1": "28 Jul 2021 | Anuncio de la Segunda Reforma Agraria y subsidio de insumos agrícolas.",
-        "hito_2": "2022 | Contraloría anula procesos de compra de urea en MIDAGRI por deficiencias técnicas.",
-        "hito_3": "Actualidad | Programa reemplazado por bonos monetarios parciales sin reforma estructural."
-    },
-    {
-        "text": "Gobierno de Pedro Castillo: Convocatoria a Asamblea Constituyente para nueva Constitución Política y masificación nacional del gas de Camisea.",
+        "text": "Gobierno de Pedro Castillo: Convocatoria a Asamblea Constituyente para redactar una nueva Constitución Política y masificación del gas de Camisea.",
         "tipo": "benchmark_oficial",
         "sector": "Reforma Constitucional",
         "espectro": "oficial",
-        "fuente": "El Peruano (Mensaje 28 Jul 2021) / Congreso de la República / MINEM",
+        "fuente": "Diario Oficial El Peruano (Mensaje 28 Jul 2021) / Congreso de la República / MINEM",
         "estado_actual": "Incumplido",
-        "evidencia_actual": "El proyecto de Asamblea Constituyente fue archivado en el Congreso en 2022 y el gas natural mantuvo cobertura limitada fuera de Lima e Ica.",
-        "hito_1": "28 Jul 2021 | Propuesta presidencial de referéndum para Asamblea Constituyente.",
-        "hito_2": "May 2022 | Comisión de Constitución archiva proyecto de ley del Ejecutivo.",
-        "hito_3": "Actualidad | Constitución de 1993 sigue vigente y masificación de gas en el sur sigue pendiente."
-    }
+        "evidencia_actual": "El proyecto de ley de Asamblea Constituyente fue archivado en la Comisión de Constitución del Congreso en mayo de 2022 y la masificación del gas mantuvo cobertura limitada.",
+        "hito_1": "28 Jul 2021 | Anuncio en Mensaje a la Nación de impulsar una Asamblea Constituyente.",
+        "hito_2": "May 2022 | Archivo definitivo de la iniciativa legislativa en el Congreso.",
+        "hito_3": "Dic 2022 | Destitución presidencial tras intento de ruptura del orden constitucional."
+    },
+    {
+        "text": "Gobierno de Pedro Castillo: Segunda Reforma Agraria, industrialización del agro y compra internacional de fertilizantes (urea) para pequeños agricultores.",
+        "tipo": "benchmark_oficial",
+        "sector": "Agro",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Mensaje 28 Jul 2022) / MIDAGRI / Contraloría",
+        "estado_actual": "Incumplido",
+        "evidencia_actual": "Cuatro licitaciones internacionales para compra de urea fueron anuladas por observaciones de Contraloría, sin concretarse la entrega oportuna en la campaña agrícola 2022.",
+        "hito_1": "Oct 2021 | Lanzamiento simbólico de la Segunda Reforma Agraria en Cusco.",
+        "hito_2": "Jul 2022 | Promesa de llegada inmediata de fertilizantes para campaña agrícola.",
+        "hito_3": "Dic 2022 | Cierre de gestión sin adquisición de urea y reemplazo tardío por Fertiabono."
+    },
+    {
+        "text": "Gobierno de Pedro Castillo: Declaratoria de emergencia en educación, ingreso libre a universidades públicas y aumento presupuestal del sector educativo.",
+        "tipo": "benchmark_oficial",
+        "sector": "Educación",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Mensaje 28 Jul 2021) / MINEDU",
+        "estado_actual": "Incumplido",
+        "evidencia_actual": "El proyecto de ingreso libre a universidades públicas no llegó a implementarse ni obtuvo viabilidad presupuestal en el Congreso.",
+        "hito_1": "Jul 2021 | Promesa de declarar en emergencia la educación e implementar ingreso libre universitario.",
+        "hito_2": "2022 | Retorno presencial a clases tras pandemia con brechas de infraestructura escolar.",
+        "hito_3": "Dic 2022 | Proyecto de ingreso libre queda sin ejecución."
+    },
+    {
+        "text": "Gobierno de Pedro Castillo: Estabilidad macroeconómica, apoyo económico mediante bonos Yanapay y lucha contra la inseguridad ciudadana.",
+        "tipo": "benchmark_oficial",
+        "sector": "Economía",
+        "espectro": "oficial",
+        "fuente": "Diario Oficial El Peruano (Mensajes 28 Jul 2021 / 2022) / MEF / BCRP",
+        "estado_actual": "Parcial",
+        "evidencia_actual": "La autonomía del BCRP preservó la estabilidad monetaria, pero la alta rotación ministerial frenó la inversión privada en 2022.",
+        "hito_1": "Jul 2021 | Ratificación de respeto a la estabilidad macroeconómica y entrega de bono Yanapay.",
+        "hito_2": "2022 | Desaceleración de la inversión privada por inestabilidad política.",
+        "hito_3": "Dic 2022 | Cierre de periodo tras crisis institucional."
+    },
 ]
 
 def _extract_video_id(url_or_id: str) -> str:
