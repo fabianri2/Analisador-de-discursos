@@ -29,7 +29,7 @@ def _seconds_to_srt_time(seconds: float) -> str:
 
 
 def _fetch_youtube_as_srt_bytes(url_or_id: str) -> tuple[str, bytes]:
-    """Descarga los subtítulos en español de YouTube y los convierte a bytes .srt válidos."""
+    """Descarga los subtítulos de YouTube y agrupa fragmentos cortos en bloques con contexto completo."""
     video_id = _extract_youtube_id(url_or_id)
     if not video_id:
         raise ValueError("El enlace de YouTube no tiene un ID de video válido.")
@@ -42,26 +42,50 @@ def _fetch_youtube_as_srt_bytes(url_or_id: str) -> tuple[str, bytes]:
         if "RequestBlocked" in type(exc).__name__ or "blocking requests" in err_msg:
             raise RuntimeError(
                 "YouTube bloqueó temporalmente la descarga directa desde la IP del servidor en la nube. "
-                "Para auditar este discurso largo ahora mismo: selecciona '📂 Corpus local (videos/)' "
+                "Para auditar este discurso ahora mismo: selecciona '📂 Corpus local (videos/)' "
                 "o sube su archivo de subtítulos (.srt) en '⬆️ Subir archivo (.mp4 / .srt)'."
             ) from exc
         raise
 
-    srt_lines = []
-    for idx, entry in enumerate(transcript, start=1):
+    # Agrupar subtítulos cortos (~3s) en bloques coherentes de ~25s o hasta signo de puntuación
+    grouped_blocks: list[tuple[float, float, str]] = []
+    buf_texts: list[str] = []
+    block_start: float | None = None
+    block_end: float = 0.0
+
+    for entry in transcript:
         start_sec = float(getattr(entry, "start", 0.0) if not isinstance(entry, dict) else entry.get("start", 0.0))
-        dur_sec = float(getattr(entry, "duration", 4.0) if not isinstance(entry, dict) else entry.get("duration", 4.0))
-        text = str(getattr(entry, "text", "") if not isinstance(entry, dict) else entry.get("text", "")).replace("\n", " ").strip()
-        if not text:
+        dur_sec = float(getattr(entry, "duration", 3.0) if not isinstance(entry, dict) else entry.get("duration", 3.0))
+        raw_text = str(getattr(entry, "text", "") if not isinstance(entry, dict) else entry.get("text", ""))
+        clean_text = re.sub(r"\[.*?\]", "", raw_text).replace("\n", " ").strip()
+        if not clean_text:
             continue
-        end_sec = start_sec + max(dur_sec, 1.0)
-        srt_lines.append(f"{idx}\n{_seconds_to_srt_time(start_sec)} --> {_seconds_to_srt_time(end_sec)}\n{text}\n")
+
+        if block_start is None:
+            block_start = start_sec
+        buf_texts.append(clean_text)
+        block_end = start_sec + max(dur_sec, 1.0)
+
+        elapsed = block_end - block_start
+        ends_sentence = clean_text.endswith((".", "!", "?"))
+        if (elapsed >= 22.0 and ends_sentence) or elapsed >= 30.0 or len(" ".join(buf_texts)) >= 320:
+            grouped_blocks.append((block_start, block_end, " ".join(buf_texts)))
+            buf_texts = []
+            block_start = None
+
+    if buf_texts and block_start is not None:
+        grouped_blocks.append((block_start, block_end, " ".join(buf_texts)))
+
+    srt_lines = [
+        f"{idx}\n{_seconds_to_srt_time(s)} --> {_seconds_to_srt_time(e)}\n{txt}\n"
+        for idx, (s, e, txt) in enumerate(grouped_blocks, start=1)
+    ]
 
     if not srt_lines:
         raise ValueError("El video no contiene subtítulos disponibles para extraer.")
 
-    srt_content = "\n".join(srt_lines).encode("utf-8")
-    return f"youtube_{video_id}.srt", srt_content
+    return f"youtube_{video_id}.srt", "\n".join(srt_lines).encode("utf-8")
+
 
 import streamlit as st
 import streamlit.components.v1 as components
