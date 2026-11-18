@@ -34,8 +34,19 @@ def _fetch_youtube_as_srt_bytes(url_or_id: str) -> tuple[str, bytes]:
     if not video_id:
         raise ValueError("El enlace de YouTube no tiene un ID de video válido.")
 
-    ytt_api = YouTubeTranscriptApi()
-    transcript = ytt_api.fetch(video_id, languages=["es", "es-419", "es-PE", "en"])
+    try:
+        ytt_api = YouTubeTranscriptApi()
+        transcript = ytt_api.fetch(video_id, languages=["es", "es-419", "es-PE", "en"])
+    except Exception as exc:
+        err_msg = str(exc)
+        if "RequestBlocked" in type(exc).__name__ or "blocking requests" in err_msg:
+            raise RuntimeError(
+                "YouTube bloqueó temporalmente la descarga directa desde la IP del servidor en la nube. "
+                "Para auditar este discurso largo ahora mismo: selecciona '📂 Corpus local (videos/)' "
+                "o sube su archivo de subtítulos (.srt) en '⬆️ Subir archivo (.mp4 / .srt)'."
+            ) from exc
+        raise
+
     srt_lines = []
     for idx, entry in enumerate(transcript, start=1):
         start_sec = float(getattr(entry, "start", 0.0) if not isinstance(entry, dict) else entry.get("start", 0.0))
