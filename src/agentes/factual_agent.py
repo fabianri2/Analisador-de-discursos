@@ -295,7 +295,7 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
     segments_output = []
     factual_discrepancies_timeline = []
 
-    for segment in speech_segments:
+    for idx, segment in enumerate(speech_segments):
         segment_id = segment["id"]
         segment_text = segment.get("text", "")
 
@@ -340,9 +340,15 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
             row_result["mention_count"] = int(sector_mentions[sector_name])
 
             if is_anchor:
+                prev_txt = speech_segments[idx - 1].get("text", "").strip() if idx > 0 else ""
+                curr_txt = segment_text.strip()
+                next_txt = speech_segments[idx + 1].get("text", "").strip() if idx + 1 < len(speech_segments) else ""
+                full_context_excerpt = " ".join(part for part in (prev_txt, curr_txt, next_txt) if part)
+
+
                 sector_audit_cards.append({
                     "sector": sector_name,
-                    "promise_excerpt": segment_text,
+                    "promise_excerpt": full_context_excerpt,
                     "timestamp_start": segment.get("start", 0.0),
                     "estado_actual": rag_data["estado_actual"],
                     "evidencia_actual": rag_data["evidencia_actual"],
@@ -351,6 +357,7 @@ def factual_alignment_agent(state: SpeechAnalysisState) -> dict:
                     "discrepancy_score": round(final_segment_discrepancy * 100.0, 1),
                     "mentions": int(sector_mentions[sector_name]),
                 })
+
 
                 if chroma_collection is not None:
                     left_hits = _query_spectrum_evidence(chroma_collection, segment_text, sector_name, "izquierda", n_results=1)
