@@ -102,6 +102,16 @@ class StandardSupervisorPolicy(ISupervisorPolicy):
         # 8. Paso 7: Publicación y Generación de Reportes
         report = state.get("report")
         if report is None:
+            if state.get("architecture") == "supervisor-hitl" and not state.get("hitl_approved"):
+                return SupervisorDirective(
+                    cycle=cycle,
+                    phase=SupervisorPhase.HUMAN_IN_THE_LOOP,
+                    next_worker=WorkerType.HITL_REVIEW,
+                    rationale=(
+                        f"Veredicto emitido ({verdict.get('label')}). Control perimetral Human-in-the-Loop activo: "
+                        "requiere revisión y validación del auditor antes de autorizar la emisión del reporte."
+                    ),
+                )
             return SupervisorDirective(
                 cycle=cycle,
                 phase=SupervisorPhase.GENERATING_REPORT,

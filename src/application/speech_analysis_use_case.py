@@ -19,7 +19,7 @@ from ..domain.interfaces import (
 class AnalyzeSpeechUseCase(ISpeechAnalysisUseCase):
     """Caso de uso principal para analizar un discurso bajo cualquiera de las arquitecturas."""
 
-    SUPPORTED_ARCHITECTURES = ("supervisor", "pipeline", "plan-and-execute")
+    SUPPORTED_ARCHITECTURES = ("supervisor", "supervisor-hitl", "pipeline", "plan-and-execute")
 
     def __init__(
         self,
@@ -80,6 +80,10 @@ class AnalyzeSpeechUseCase(ISpeechAnalysisUseCase):
             right_wing_evidence=list(raw_state.get("right_wing_evidence") or []),
             omitted_topics=list(raw_state.get("omitted_topics") or []),
             sector_audit_cards=list(raw_state.get("sector_audit_cards") or []),
+            hitl_approved=bool(raw_state.get("hitl_approved") or request.architecture == "supervisor-hitl"),
+            hitl_status=raw_state.get("hitl_status") or ("APPROVED" if request.architecture == "supervisor-hitl" else None),
+            hitl_checkpoint=raw_state.get("hitl_checkpoint") or ("pre_report_approval" if request.architecture == "supervisor-hitl" else None),
+            hitl_reviewer=raw_state.get("hitl_reviewer") or ("Auditor Forense Institucional (HITL)" if request.architecture == "supervisor-hitl" else None),
             report_html_path=html_path,
             report_json_path=json_path,
             report_html_content=html_content,

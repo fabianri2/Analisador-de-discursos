@@ -29,12 +29,18 @@ videos/*.webm
 resultados_taller/
 resultados_plan/
 results/_prueba*/
+results/_test*/
+results/Discurso Pedro Castillo*/
+resultados_metricas/
+results/*/*.wav
 
-# Documentación local (se sube a Notion, no al repositorio)
+# Documentos locales del proyecto (no se versionan)
 /docs/
+/03_Metricas*.docx
 
 # OS / Editor files
 .vscode/
 .idea/
 Thumbs.db
 .DS_Store
+/docs

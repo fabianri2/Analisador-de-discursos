@@ -19,6 +19,7 @@ class WorkerType(str, Enum):
     SYNTACTIC_ANALYSIS = "syntactic_analysis"
     FACTUAL_AUDIT = "factual_audit"
     JUDGE_CONSOLIDATION = "judge_consolidation"
+    HITL_REVIEW = "hitl_review"
     REPORT_GENERATION = "report_generation"
     FINISH = "FINISH"
 
@@ -31,6 +32,7 @@ class SupervisorPhase(str, Enum):
     AUDITING_FACTS = "AUDITING_FACTS"
     EVALUATING_SEVERITY = "EVALUATING_SEVERITY"
     CONSOLIDATING_VERDICT = "CONSOLIDATING_VERDICT"
+    HUMAN_IN_THE_LOOP = "HUMAN_IN_THE_LOOP"
     GENERATING_REPORT = "GENERATING_REPORT"
     COMPLETED = "COMPLETED"
 
@@ -101,6 +103,10 @@ class AnalysisExecutionResult:
     right_wing_evidence: List[Dict[str, Any]] = field(default_factory=list)
     omitted_topics: List[str] = field(default_factory=list)
     sector_audit_cards: List[Dict[str, Any]] = field(default_factory=list)
+    hitl_approved: bool = False
+    hitl_status: Optional[str] = None
+    hitl_checkpoint: Optional[str] = None
+    hitl_reviewer: Optional[str] = None
     report_html_path: Optional[str] = None
     report_json_path: Optional[str] = None
     report_html_content: str = ""

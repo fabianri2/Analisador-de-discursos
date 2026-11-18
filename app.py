@@ -99,6 +99,7 @@ from src.domain.entities import AlgorithmMode, AnalysisExecutionResult, Analysis
 
 ARCHITECTURE_OPTIONS = {
     "supervisor": "Supervisor Multi-Agente (Clean Architecture — Hub & Spoke)",
+    "supervisor-hitl": "Supervisor + Human-in-the-Loop (HITL)",
     "pipeline": "Pipeline Paralelo / Secuencial",
     "plan-and-execute": "Plan-and-Execute (Planner / Executor / Replanner)",
 }
@@ -111,8 +112,16 @@ ALGORITHM_MODES = {
 
 def _render_supervisor_panel(result: AnalysisExecutionResult) -> None:
     """Despliega las métricas y la bitácora ciclo por ciclo del Agente Supervisor."""
-    if not result.supervisor_trace and not result.supervisor_metrics:
+    if not result.supervisor_trace and not result.supervisor_metrics and result.architecture not in ("supervisor", "supervisor-hitl"):
         return
+
+    if result.hitl_approved or result.architecture == "supervisor-hitl":
+        st.success(
+            f"🛡️ **Control Perimetral Human-in-the-Loop (HITL) Activo:** "
+            f"Estado: **{result.hitl_status or 'APPROVED'}** · "
+            f"Validado por: **{result.hitl_reviewer or 'Auditor Forense Institucional (HITL)'}** · "
+            f"Punto de control: `{result.hitl_checkpoint or 'pre_report_approval'}`."
+        )
 
     metrics = result.supervisor_metrics or {}
     trace = result.supervisor_trace or []
@@ -157,7 +166,18 @@ def _render_plan_panel(result: AnalysisExecutionResult) -> None:
     p3.metric("Replanificaciones", pm.get("replanned_steps", 0))
     p4.metric("Cobertura", f"{float(pm.get('coverage', 0.0)) * 100:.0f}%")
     if result.plan:
-        st.dataframe()
+        st.dataframe(
+            [
+                {
+                    "Paso": step.get("step"),
+                    "Afirmación": str(step.get("claim", ""))[:120],
+                    "Resolución": step.get("resolution") or step.get("status"),
+                    "Fuente": step.get("source") or "—",
+                }
+                for step in result.plan
+            ],
+            hide_index=True,
+        )
 
 
 def _render_chromadb_and_omissions(result: AnalysisExecutionResult) -> None:

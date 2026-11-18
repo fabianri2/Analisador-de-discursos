@@ -58,4 +58,10 @@ class SpeechAnalysisState(TypedDict, total=False):
     omitted_topics: List[str]
     sector_audit_cards: List[Dict[str, Any]]
 
+    # Control Human-in-the-Loop (HITL)
+    hitl_approved: bool
+    hitl_status: str
+    hitl_checkpoint: str
+    hitl_reviewer: str
+
     
